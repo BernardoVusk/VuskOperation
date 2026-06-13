@@ -25,7 +25,7 @@ export function FacebookCallbackHandler() {
     }
 
     // Trocar o code pelo token via backend
-    fetch(`/api/facebook/exchange-code?code=${encodeURIComponent(code)}`)
+    fetch(`/.netlify/functions/facebook-exchange?code=${encodeURIComponent(code)}`)
       .then(res => res.json())
       .then(data => {
         if (!data.success) throw new Error(data.error || "Erro ao trocar token");
