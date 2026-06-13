@@ -258,10 +258,10 @@ export function IntegrationsPanel() {
         {activeIntegration === "facebook" && (
           <div className="col-span-full">
             <motion.div
-              initial={{ opacity: 0, y: 15, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: 15, height: 0 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 15 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="mt-2"
             >
               <FacebookAdsPanel />

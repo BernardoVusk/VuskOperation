@@ -4,6 +4,7 @@ import {
   BarChart2, ShieldCheck, HelpCircle, ChevronRight, ChevronDown, Flame, Search, SlidersHorizontal, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useFacebookAuth } from "../hooks/useFacebookAuth";
 
 interface AccountInsights {
   spend: string;
@@ -42,12 +43,20 @@ interface AdSet {
 }
 
 export function FacebookAdsPanel() {
+  const { authState, isConnecting, error: authError, login, logout } = useFacebookAuth();
+
   // Credentials & Filters states
-  const [accessToken, setAccessToken] = useState("");
   const [adAccountId, setAdAccountId] = useState("");
   const [datePreset, setDatePreset] = useState("last_7d");
-  const [showToken, setShowToken] = useState(false);
-  const [isSavedInLocal, setIsSavedInLocal] = useState(false);
+
+  // Ad accounts list
+  interface AdAccount {
+    id: string;
+    name: string;
+    currency: string;
+  }
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
 
   // API response states
   const [accountInsights, setAccountInsights] = useState<AccountInsights | null>(null);
@@ -68,23 +77,66 @@ export function FacebookAdsPanel() {
   const [sortBy, setSortBy] = useState<"spend" | "ctr" | "results">("spend");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // Load from local storage on mount
+  const accessToken = authState.accessToken || "";
+
+  // Set date preset from local credentials on mount
   useEffect(() => {
     const saved = localStorage.getItem("vusk_fb_credentials");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.accessToken && parsed.adAccountId) {
-          setAccessToken(parsed.accessToken);
-          setAdAccountId(parsed.adAccountId);
-          setDatePreset(parsed.datePreset || "last_7d");
-          setIsSavedInLocal(true);
+        if (parsed.datePreset) {
+          setDatePreset(parsed.datePreset);
         }
       } catch (e) {
-        console.error("Erro ao carregar credenciais locais", e);
+        console.error("Erro ao carregar pré-configuração local", e);
       }
     }
   }, []);
+
+  // Fetch ad accounts automatically when connected
+  useEffect(() => {
+    if (authState.isConnected && authState.accessToken) {
+      setIsLoadingAccounts(true);
+      setError(null);
+      fetch(`/api/facebook/ad-accounts?accessToken=${encodeURIComponent(authState.accessToken)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setAdAccounts(data.accounts || []);
+            
+            // If user already had an adAccountId stored, use it
+            const saved = localStorage.getItem("vusk_fb_credentials");
+            let preservedId = "";
+            if (saved) {
+              try {
+                const parsed = JSON.parse(saved);
+                if (parsed.adAccountId) {
+                  preservedId = parsed.adAccountId;
+                }
+              } catch {}
+            }
+            
+            if (preservedId && data.accounts?.some((acc: any) => acc.id === preservedId)) {
+              setAdAccountId(preservedId);
+            } else if (data.accounts && data.accounts.length > 0) {
+              setAdAccountId(data.accounts[0].id);
+            }
+          } else {
+            setError(data.error || "Erro ao carregar contas de anúncio.");
+          }
+        })
+        .catch(err => {
+          setError(err.message || "Erro de rede ao carregar contas de anúncio.");
+        })
+        .finally(() => {
+          setIsLoadingAccounts(false);
+        });
+    } else {
+      setAdAccounts([]);
+      setAdAccountId("");
+    }
+  }, [authState.isConnected, authState.accessToken]);
 
   // Formatters
   const formatCurrency = (value: string | number | undefined) => {
@@ -124,7 +176,6 @@ export function FacebookAdsPanel() {
 
   const extractRoas = (roasArray: any[] | undefined) => {
     if (!roasArray || !Array.isArray(roasArray)) return "—";
-    // Find any purchase ROAS action
     const purchaseRoas = roasArray.find(
       r => r.action_type === "purchase" || r.action_type === "offsite_conversion.fb_pixel_purchase" || r.action_type === "omni_purchase"
     );
@@ -133,38 +184,10 @@ export function FacebookAdsPanel() {
     return val.toFixed(2) + "x";
   };
 
-  // Action: Save Credentials
-  const handleSaveCredentials = () => {
-    if (!accessToken || !adAccountId) {
-      setError("Por favor, preencha o Access Token e o ID da Conta de Anúncios.");
-      return;
-    }
-    const cleanId = adAccountId.trim();
-    localStorage.setItem(
-      "vusk_fb_credentials",
-      JSON.stringify({ accessToken: accessToken.trim(), adAccountId: cleanId, datePreset })
-    );
-    setIsSavedInLocal(true);
-    setError(null);
-  };
-
-  // Action: Clear Credentials
-  const handleClearCredentials = () => {
-    localStorage.removeItem("vusk_fb_credentials");
-    setAccessToken("");
-    setAdAccountId("");
-    setIsSavedInLocal(false);
-    setAccountInsights(null);
-    setCampaigns([]);
-    setAdsets({});
-    setHasLoadedAtLeastOnce(false);
-    setError(null);
-  };
-
   // Main fetch function
   const handleFetchData = async () => {
     if (!accessToken || !adAccountId) {
-      setError("Por favor, configure e salve as credenciais antes de carregar.");
+      setError("Por favor, selecione uma conta de anúncios antes de carregar.");
       return;
     }
 
@@ -199,6 +222,12 @@ export function FacebookAdsPanel() {
       }
       setCampaigns(campaignsData.campaigns || []);
       setHasLoadedAtLeastOnce(true);
+
+      // Auto-save the selection
+      localStorage.setItem(
+        "vusk_fb_credentials",
+        JSON.stringify({ accessToken: cleanToken, adAccountId: cleanId, datePreset })
+      );
 
     } catch (err: any) {
       console.error(err);
@@ -300,156 +329,175 @@ export function FacebookAdsPanel() {
 
   return (
     <div className="space-y-6">
-      {/* SEÇÃO A - Configuração de Credenciais */}
-      <div id="credenciais-fb-panel" className="border border-white/5 bg-zinc-950/40 rounded-2xl p-5 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#1877F2]/10 border border-[#1877F2]/20 flex items-center justify-center font-bold text-lg text-[#1877F2] select-none font-sans shadow-inner">
-              f
+      {!authState.isConnected ? (
+        <div className="border border-white/5 bg-zinc-950/40 rounded-2xl p-5 space-y-5">
+          <div className="flex flex-col items-center justify-center py-16 space-y-6">
+            
+            {/* Ícone Facebook */}
+            <div className="w-20 h-20 rounded-full bg-[#1877F2] flex items-center justify-center shadow-[0_0_30px_rgba(24,119,242,0.3)] select-none">
+              <span className="text-white font-black text-3xl">f</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9.5px] font-bold uppercase tracking-widest text-zinc-400 font-mono">
-                  Configuração de API
-                </span>
-                {isSavedInLocal && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-400 font-mono flex items-center gap-1">
-                    <Check className="w-2.5 h-2.5" /> Credenciais Salvas ✓
-                  </span>
-                )}
-              </div>
-              <h3 className="text-sm font-bold text-white tracking-wide font-sans mt-0.5">
-                Facebook Marketing API Connection
-              </h3>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 select-none">
-            <label className="text-[10px] font-bold text-zinc-400 font-mono">PERÍODO:</label>
-            <select
-              value={datePreset}
-              onChange={(e) => {
-                setDatePreset(e.target.value);
-                // Auto-save preset changes to local storage if credentials are saved
-                if (isSavedInLocal) {
-                  localStorage.setItem(
-                    "vusk_fb_credentials",
-                    JSON.stringify({ accessToken, adAccountId, datePreset: e.target.value })
-                  );
-                }
-              }}
-              className="bg-[#141416]/90 border border-white/5 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary/50 cursor-pointer font-sans"
+            <div className="text-center space-y-2">
+              <h3 className="text-white font-bold text-base tracking-wide font-sans">
+                Conectar Facebook Ads
+              </h3>
+              <p className="text-zinc-400 text-xs max-w-sm text-center leading-relaxed">
+                Acesse seus dados de campanhas, conjuntos e anúncios diretamente no Vusk Operation. Conexão segura via OAuth oficial do Facebook.
+              </p>
+            </div>
+
+            {/* Escopos solicitados */}
+            <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 max-w-xs w-full space-y-2 select-none">
+              <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider font-mono block">
+                Permissões solicitadas
+              </span>
+              {[
+                "Leitura de campanhas e anúncios (ads_read)",
+                "Gerenciamento comercial (business_management)",
+                "Leitura de dados de performance (ads_management)",
+                "Perfil público básico (public_profile)"
+              ].map((perm) => (
+                <div key={perm} className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#1877F2]" />
+                  <span className="text-[11px] text-zinc-400 font-sans">{perm}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={login}
+              disabled={isConnecting}
+              className="flex items-center gap-3 px-8 py-4 bg-[#1877F2] text-white font-bold text-sm rounded-xl shadow-[0_0_20px_rgba(24,119,242,0.35)] hover:bg-[#1464d8] hover:shadow-[0_0_30px_rgba(24,119,242,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <option value="today">Hoje</option>
-              <option value="yesterday">Ontem</option>
-              <option value="last_7d">Últimos 7 dias</option>
-              <option value="last_14d">Últimos 14 dias</option>
-              <option value="last_30d">Últimos 30 dias</option>
-            </select>
+              {isConnecting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Conectando...
+                </>
+              ) : (
+                <>
+                  <span className="font-black text-lg leading-none">f</span>
+                  Entrar com Facebook
+                </>
+              )}
+            </button>
+
+            {(authError || error) && (
+              <div className="flex items-center gap-2.5 text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 max-w-sm">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold block">Erro na Autenticação:</span>
+                  <span className="opacity-95 text-[11px] leading-normal">{authError || error}</span>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
-
-        {error && (
-          <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2.5 text-xs text-red-400">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="font-bold">Falha na Autenticação ou Solicitação:</span>
-              <p className="opacity-90 leading-relaxed text-[11px]">{error}</p>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2 relative">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
-                ACCESS TOKEN DO FACEBOOK
-              </label>
+      ) : (
+        <>
+          {/* SEÇÃO A - Configuração de Credenciais conectado */}
+          <div id="credenciais-fb-panel" className="border border-white/5 bg-zinc-950/40 rounded-2xl p-5 space-y-5">
+            <div className="flex items-center justify-between p-4 bg-[#1877F2]/10 border border-[#1877F2]/20 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#1877F2] flex items-center justify-center select-none font-sans font-black text-white text-sm">
+                  f
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block font-sans">
+                    {authState.userName || "Usuário Conectado"}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 font-mono block mt-0.5">
+                    Token expira em {authState.daysUntilExpiry !== null ? authState.daysUntilExpiry : "—"} dias
+                  </span>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => setShowToken(!showToken)}
-                className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-0.5"
-                title={showToken ? "Ocultar token" : "Revelar token"}
+                onClick={logout}
+                className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors font-mono uppercase tracking-wider cursor-pointer font-bold"
               >
-                {showToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                Desconectar
               </button>
             </div>
-            
-            <div className="relative">
-              <textarea
-                value={accessToken}
-                onChange={(e) => {
-                  setAccessToken(e.target.value);
-                  setIsSavedInLocal(false);
-                }}
-                placeholder="EAAxxxxxxx... copie o token obtido no Gerenciador de Ferramentas ou Graph Explorer"
-                style={{ WebkitTextSecurity: showToken ? "none" : "disc" }}
-                className="w-full bg-[#141416] border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#1877F2]/60 min-h-[60px] max-h-[80px] font-mono custom-scrollbar"
-              />
-            </div>
-            <p className="text-[10px] text-zinc-500 font-mono">
-              Como obter? →{" "}
-              <a 
-                href="https://developers.facebook.com/tools/explorer" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="text-[#1877F2] hover:underline"
-              >
-                developers.facebook.com/tools/explorer
-              </a>
-            </p>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono block">
-              ID DA CONTA DE ANÚNCIOS
-            </label>
-            <input
-              type="text"
-              value={adAccountId}
-              onChange={(e) => {
-                setAdAccountId(e.target.value);
-                setIsSavedInLocal(false);
-              }}
-              placeholder="act_123456789"
-              className="w-full bg-[#141416] border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#1877F2]/60 font-mono"
-            />
-            <p className="text-[10px] text-zinc-500 font-mono">
-              Encontre em Gerenciador de Anúncios → URL da conta (ex: act_...)
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 pt-2 select-none">
-          <button
-            onClick={handleSaveCredentials}
-            disabled={!accessToken || !adAccountId}
-            className="px-4 py-2 bg-[#1877F2] hover:bg-[#1877F2]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition duration-300 font-sans cursor-pointer flex items-center gap-2 shadow-[0_0_15px_rgba(24,119,242,0.2)]"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" /> Salvar Credenciais
-          </button>
-          <button
-            onClick={handleFetchData}
-            disabled={isLoadingInsights || isLoadingCampaigns || !accessToken || !adAccountId}
-            className="px-4 py-2 bg-primary text-white hover:bg-primary/95 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold rounded-xl transition duration-300 font-sans cursor-pointer flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,42,42,0.3)]"
-          >
-            {isLoadingInsights || isLoadingCampaigns ? (
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="w-3.5 h-3.5" />
+            {error && (
+              <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2.5 text-xs text-red-400">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="font-bold">Falha na Autenticação ou Solicitação:</span>
+                  <p className="opacity-90 leading-relaxed text-[11px]">{error}</p>
+                </div>
+              </div>
             )}
-            Carregar Dados
-          </button>
-          {isSavedInLocal && (
-            <button
-              onClick={handleClearCredentials}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 hover:border-white/10 text-xs font-bold rounded-xl transition duration-300 font-sans cursor-pointer"
-            >
-              Limpar Credenciais
-            </button>
-          )}
-        </div>
-      </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Seletor de conta de anúncio (após conectar) */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono block">
+                  Conta de Anúncios
+                </label>
+                <select
+                  value={adAccountId}
+                  onChange={(e) => {
+                    setAdAccountId(e.target.value);
+                    localStorage.setItem(
+                      "vusk_fb_credentials",
+                      JSON.stringify({ accessToken, adAccountId: e.target.value, datePreset })
+                    );
+                  }}
+                  disabled={isLoadingAccounts}
+                  className="w-full bg-[#141416] border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-primary/50 cursor-pointer font-sans"
+                >
+                  <option value="">{isLoadingAccounts ? "Carregando contas de anúncio..." : "Selecionar conta..."}</option>
+                  {adAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} ({account.id}) — {account.currency}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Período */}
+              <div className="space-y-2 select-none">
+                <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono block">
+                  Período de Análise
+                </label>
+                <select
+                  value={datePreset}
+                  onChange={(e) => {
+                    setDatePreset(e.target.value);
+                    localStorage.setItem(
+                      "vusk_fb_credentials",
+                      JSON.stringify({ accessToken, adAccountId, datePreset: e.target.value })
+                    );
+                  }}
+                  className="w-full bg-[#141416] border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-primary/50 cursor-pointer font-sans"
+                >
+                  <option value="today">Hoje</option>
+                  <option value="yesterday">Ontem</option>
+                  <option value="last_7d">Últimos 7 dias</option>
+                  <option value="last_14d">Últimos 14 dias</option>
+                  <option value="last_30d">Últimos 30 dias</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2 select-none">
+              <button
+                onClick={handleFetchData}
+                disabled={isLoadingInsights || isLoadingCampaigns || !adAccountId}
+                className="px-6 py-3 bg-[#1877F2] text-white hover:bg-[#1464d8] disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold rounded-xl transition duration-300 font-sans cursor-pointer flex items-center gap-1.5 shadow-[0_0_15px_rgba(24,119,242,0.35)]"
+              >
+                {isLoadingInsights || isLoadingCampaigns ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                Carregar Dados
+              </button>
+            </div>
+          </div>
 
       {/* SEÇÃO B - Dashboard de Dados */}
       {hasLoadedAtLeastOnce ? (
@@ -905,6 +953,8 @@ export function FacebookAdsPanel() {
           </button>
         </div>
       )}
-    </div>
+    </>
+  )}
+</div>
   );
 }

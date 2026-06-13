@@ -476,6 +476,147 @@ app.get("/api/trackers", (req, res) => {
   res.json({ success: true, trackers: TRACKERS });
 });
 
+// FACEBOOK ADS OAUTH & API CONFIG & ROUTING
+const FB_APP_ID = process.env.FACEBOOK_APP_ID || "1297847892562716";
+const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "";
+const FB_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 
+  "https://vuskoperation.netlify.app/auth/facebook/callback";
+
+app.get("/auth/facebook/callback", async (req, res) => {
+  const code = req.query.code as string | undefined;
+  const error = req.query.error as string | undefined;
+
+  if (error || !code) {
+    return res.send(`
+      <html><body><script>
+        window.opener.postMessage(
+          { type: "FACEBOOK_AUTH_ERROR", error: "${error || 'Autorização cancelada'}" },
+          "*"
+        );
+        window.close();
+      </script></body></html>
+    `);
+  }
+
+  try {
+    // Passo 1: Trocar code por token curto
+    const tokenUrl = `https://graph.facebook.com/v19.0/oauth/access_token?` +
+      `client_id=${FB_APP_ID}` +
+      `&redirect_uri=${encodeURIComponent(FB_REDIRECT_URI)}` +
+      `&client_secret=${FB_APP_SECRET}` +
+      `&code=${code}`;
+
+    const tokenRes = await fetch(tokenUrl);
+    const tokenData = (await tokenRes.json()) as any;
+
+    if (tokenData.error) {
+      throw new Error(tokenData.error.message);
+    }
+
+    const shortToken = tokenData.access_token;
+
+    // Passo 2: Trocar token curto por token longo (60 dias)
+    const longTokenUrl = `https://graph.facebook.com/v19.0/oauth/access_token?` +
+      `grant_type=fb_exchange_token` +
+      `&client_id=${FB_APP_ID}` +
+      `&client_secret=${FB_APP_SECRET}` +
+      `&fb_exchange_token=${shortToken}`;
+
+    const longTokenRes = await fetch(longTokenUrl);
+    const longTokenData = (await longTokenRes.json()) as any;
+
+    if (longTokenData.error) {
+      throw new Error(longTokenData.error.message);
+    }
+
+    const longToken = longTokenData.access_token;
+    const expiresIn = longTokenData.expires_in; // segundos (~5184000 = 60 dias)
+    const expiresAt = Date.now() + (expiresIn * 1000);
+
+    // Passo 3: Buscar nome do usuário
+    const userRes = await fetch(
+      `https://graph.facebook.com/v19.0/me?fields=id,name&access_token=${longToken}`
+    );
+    const userData = (await userRes.json()) as any;
+
+    // Passo 4: Retornar HTML que fecha popup e envia token para janela pai
+    return res.send(`
+      <html>
+        <head><title>Conectando...</title></head>
+        <body style="background:#060607;color:white;font-family:sans-serif;
+          display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+          <div style="text-align:center">
+            <div style="width:12px;height:12px;border-radius:50%;
+              background:#FF2A2A;margin:0 auto 12px;animation:pulse 1s infinite"></div>
+            <p style="font-size:12px;color:#666">Conectando ao Vusk Operation...</p>
+          </div>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                type: "FACEBOOK_AUTH_SUCCESS",
+                accessToken: "${longToken}",
+                expiresAt: ${expiresAt},
+                userId: "${userData.id || ''}",
+                userName: "${userData.name || ''}"
+              }, "*");
+              setTimeout(() => window.close(), 800);
+            } else {
+              document.body.innerHTML = '<p style="color:red">Erro: janela pai não encontrada.</p>';
+            }
+          </script>
+        </body>
+      </html>
+    `);
+
+  } catch (err: any) {
+    return res.send(`
+      <html><body><script>
+        window.opener.postMessage(
+          { type: "FACEBOOK_AUTH_ERROR", error: "${err.message}" },
+          "*"
+        );
+        window.close();
+      </script></body></html>
+    `);
+  }
+});
+
+app.get("/api/facebook/ad-accounts", async (req, res) => {
+  const accessToken = req.query.accessToken as string | undefined;
+  if (!accessToken) {
+    return res.status(400).json({ success: false, error: "accessToken obrigatório" });
+  }
+  try {
+    const url = `https://graph.facebook.com/v19.0/me/adaccounts?` +
+      `fields=id,name,account_status,currency,timezone_name&` +
+      `access_token=${accessToken}`;
+    const response = await fetch(url);
+    const data = (await response.json()) as any;
+    if (data.error) throw new Error(data.error.message);
+    return res.json({ success: true, accounts: data.data || [] });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get("/api/facebook/token-info", async (req, res) => {
+  const accessToken = req.query.accessToken as string | undefined;
+  if (!accessToken) {
+    return res.status(400).json({ success: false, error: "accessToken obrigatório" });
+  }
+  try {
+    const url = `https://graph.facebook.com/v19.0/debug_token?` +
+      `input_token=${accessToken}&` +
+      `access_token=${FB_APP_ID}|${FB_APP_SECRET}`;
+    const response = await fetch(url);
+    const data = (await response.json()) as any;
+    if (data.error) throw new Error(data.error.message);
+    return res.json({ success: true, tokenInfo: data.data });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 1.5. POST Agente IA Custom Chat (Interact with Agent via Gemini)
 app.post("/api/agents/chat", async (req, res) => {
   const { messages, systemPrompt } = req.body;
