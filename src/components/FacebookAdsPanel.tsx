@@ -99,7 +99,7 @@ export function FacebookAdsPanel() {
     if (authState.isConnected && authState.accessToken) {
       setIsLoadingAccounts(true);
       setError(null);
-      fetch(`/api/facebook/ad-accounts?accessToken=${encodeURIComponent(authState.accessToken)}`)
+      fetch(`/.netlify/functions/facebook-ad-accounts?accessToken=${encodeURIComponent(authState.accessToken)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -202,7 +202,7 @@ export function FacebookAdsPanel() {
     try {
       // 1. Fetch Account Insights
       const insightsRes = await fetch(
-        `/api/facebook/account-insights?accessToken=${encodeURIComponent(cleanToken)}&adAccountId=${encodeURIComponent(cleanId)}&datePreset=${datePreset}`
+        `/.netlify/functions/facebook-account-insights?accessToken=${encodeURIComponent(cleanToken)}&adAccountId=${encodeURIComponent(cleanId)}&datePreset=${datePreset}`
       );
       const insightsData = await insightsRes.json();
 
@@ -213,7 +213,7 @@ export function FacebookAdsPanel() {
 
       // 2. Fetch Campaigns
       const campaignsRes = await fetch(
-        `/api/facebook/campaigns?accessToken=${encodeURIComponent(cleanToken)}&adAccountId=${encodeURIComponent(cleanId)}&datePreset=${datePreset}`
+        `/.netlify/functions/facebook-campaigns?accessToken=${encodeURIComponent(cleanToken)}&adAccountId=${encodeURIComponent(cleanId)}&datePreset=${datePreset}`
       );
       const campaignsData = await campaignsRes.json();
 
@@ -255,7 +255,7 @@ export function FacebookAdsPanel() {
     try {
       const cleanToken = accessToken.trim();
       const adsetsRes = await fetch(
-        `/api/facebook/adsets?accessToken=${encodeURIComponent(cleanToken)}&campaignId=${campaignId}&datePreset=${datePreset}`
+        `/.netlify/functions/facebook-adsets?accessToken=${encodeURIComponent(cleanToken)}&campaignId=${campaignId}&datePreset=${datePreset}`
       );
       const adsetsData = await adsetsRes.json();
 
