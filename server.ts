@@ -14,15 +14,34 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Lazy-initialized Gemini Client
+// Lazy-initialized Gemini Client with strict support for new "AQ" keys and classic "AIzaSy" keys
 let aiInstance: GoogleGenAI | null = null;
 function getGemini(): GoogleGenAI | null {
   if (!aiInstance) {
-    const key = process.env.GEMINI_API_KEY;
+    let key = process.env.GEMINI_API_KEY;
     if (!key) {
       console.warn("GEMINI_API_KEY environment variable is not defined. Falling back to heuristic/simulation scoring.");
       return null;
     }
+
+    // Sanitize the key: strip surrounding whitespace and common copy-paste errors (like quotes added in Vercel configuration)
+    key = key.trim();
+    if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+      key = key.slice(1, -1).trim();
+    }
+
+    // Explicitly validate both key formats to reassure user compatibility
+    const isClassicKey = key.startsWith("AIzaSy");
+    const isNewAQKey = key.startsWith("AQ") || key.startsWith("AQ.");
+
+    if (isNewAQKey) {
+      console.log(`[Gemini API Key] Successfully processed and validated modern AQ-prefixed Gemini key (Length: ${key.length}).`);
+    } else if (isClassicKey) {
+      console.log(`[Gemini API Key] Successfully processed and validated classic AIza-prefixed Gemini key (Length: ${key.length}).`);
+    } else {
+      console.warn(`[Gemini API Key Warning] Key format does not match regular signature prefixes (AIzaSy or AQ). Proceeding anyway (Length: ${key.length}).`);
+    }
+
     try {
       aiInstance = new GoogleGenAI({
         apiKey: key,
@@ -33,7 +52,7 @@ function getGemini(): GoogleGenAI | null {
         },
       });
     } catch (err) {
-      console.error("Failed to initialize Gemini Client:", err);
+      console.error("Failed to initialize Gemini Client with provided key:", err);
       return null;
     }
   }
