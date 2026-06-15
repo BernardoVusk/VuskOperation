@@ -3,7 +3,7 @@ import { Lock, ArrowLeft, Loader2, KeyRound } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface LandingScreenProps {
-  onAuthenticated: () => void;
+  onAuthenticated: (operatorName: string) => void;
 }
 
 export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
@@ -12,6 +12,8 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
   const [isShaking, setIsShaking] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("Senha incorreta. Tente novamente.");
+  const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
   
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,17 +34,28 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
     setScreenState("presentation");
     setShowError(false);
     setPasswordValue("");
+    setSelectedOperator(null);
   };
 
   const verifyPassword = () => {
-    // Correct hashed format expected
-    const EXPECTED_HASH = btoa("vusk10");
-    const enteredHash = btoa(passwordValue.trim());
+    if (!selectedOperator) {
+      setErrorMsg("Selecione seu nome para continuar.");
+      setShowError(true);
+      return;
+    }
 
-    if (enteredHash === EXPECTED_HASH) {
-      onAuthenticated();
+    const OPERATORS: Record<string, string> = {
+      "Bernardo": "adminvusk",
+      "Gabriel": "vusk10"
+    };
+
+    const expectedPassword = OPERATORS[selectedOperator];
+
+    if (passwordValue.trim() === expectedPassword) {
+      onAuthenticated(selectedOperator);
     } else {
       setIsShaking(true);
+      setErrorMsg("Senha incorreta. Tente novamente.");
       setShowError(true);
       setPasswordValue("");
       setTimeout(() => {
@@ -54,6 +67,11 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
 
   const handleVerifySubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!selectedOperator) {
+      setErrorMsg("Selecione seu nome para continuar.");
+      setShowError(true);
+      return;
+    }
     if (isVerifying || !passwordValue.trim()) return;
 
     setIsVerifying(true);
@@ -157,8 +175,45 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
               </p>
             </div>
 
+            {/* Seletor de Operador */}
+            <div className="w-64 mb-4 mx-auto">
+              <label className="text-[10px] font-bold uppercase text-zinc-500 
+                tracking-wider font-mono block mb-2 text-center">
+                Selecione o Operador
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {["Bernardo", "Gabriel"].map((name) => (
+                  <button
+                    type="button"
+                    key={name}
+                    onClick={() => {
+                      setSelectedOperator(name);
+                      setShowError(false);
+                      setTimeout(() => {
+                        passwordInputRef.current?.focus();
+                      }, 100);
+                    }}
+                    className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider
+                      font-mono transition-all border cursor-pointer ${
+                      selectedOperator === name
+                        ? "bg-primary/10 border-primary text-white shadow-[0_0_15px_rgba(255,42,42,0.2)]"
+                        : "bg-[#141416] border-white/5 text-zinc-500 hover:border-white/10 hover:text-zinc-300"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Verification Form */}
             <form onSubmit={handleVerifySubmit} className="w-full space-y-4">
+              {selectedOperator && (
+                <p className="text-[10px] text-zinc-500 font-mono text-center animate-fade-in mb-2">
+                  Bem-vindo de volta, <span className="text-white font-bold">{selectedOperator}</span>
+                </p>
+              )}
+
               <div className={`relative ${isShaking ? "shake" : ""}`}>
                 <input
                   ref={passwordInputRef}
@@ -168,13 +223,13 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
                     setPasswordValue(e.target.value);
                     if (showError) setShowError(false);
                   }}
-                  disabled={isVerifying}
+                  disabled={isVerifying || !selectedOperator}
                   placeholder="••••••••"
                   className={`w-full bg-[#111113] border text-center tracking-widest text-white px-4 py-3.5 focus:outline-none transition-all duration-200 uppercase font-mono rounded-xl max-w-[240px] mx-auto block ${
                     showError 
                       ? "border-red-500/50 bg-red-950/10 focus:border-red-500" 
                       : "border-white/5 focus:border-primary/50"
-                  }`}
+                  } ${!selectedOperator ? "opacity-40 cursor-not-allowed" : ""}`}
                   style={{ fontSize: "16px" }} // Prevent iOS Auto Zoom
                   required
                 />
@@ -183,14 +238,14 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
               {/* Async Verification status alerts */}
               {showError && (
                 <p className="text-[10px] text-red-500 font-mono font-semibold uppercase tracking-wide animate-fade-in">
-                  Senha incorreta. Tente novamente.
+                  {errorMsg}
                 </p>
               )}
 
               {/* Login Submit actions */}
               <button
                 type="submit"
-                disabled={isVerifying || !passwordValue.trim()}
+                disabled={isVerifying || !passwordValue.trim() || !selectedOperator}
                 className="w-full min-h-[44px] max-w-[240px] bg-primary hover:bg-red-600 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-[0_0_15px_rgba(255,42,42,0.3)] transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 mx-auto"
               >
                 {isVerifying ? (

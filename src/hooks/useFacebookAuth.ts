@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useOperator } from "../contexts/OperatorContext";
 
 const FB_APP_ID = "1297847892562716";
-const STORAGE_KEY = "vusk_fb_auth";
 
 export interface FacebookAuthState {
   accessToken: string | null;
@@ -14,7 +14,11 @@ export interface FacebookAuthState {
 }
 
 export function useFacebookAuth() {
-  const [authState, setAuthState] = useState<FacebookAuthState>(() => {
+  const operator = useOperator();
+  const STORAGE_KEY = `vusk_fb_auth_${operator.toLowerCase()}`;
+  const CREDENTIALS_KEY = `vusk_fb_credentials_${operator.toLowerCase()}`;
+
+  const loadInitialState = useCallback(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) return emptyState();
@@ -32,7 +36,14 @@ export function useFacebookAuth() {
     } catch {
       return emptyState();
     }
-  });
+  }, [STORAGE_KEY]);
+
+  const [authState, setAuthState] = useState<FacebookAuthState>(loadInitialState);
+
+  // Sync state if operator changes
+  useEffect(() => {
+    setAuthState(loadInitialState());
+  }, [operator, loadInitialState]);
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +110,8 @@ export function useFacebookAuth() {
           accessToken, expiresAt, userId, userName
         }));
         
-        // Also save to standard vusk_fb_credentials for backwards compatibility down the line if we want
-        // But we will primarily drive from authState
-        const savedCreds = localStorage.getItem("vusk_fb_credentials");
+        // Also save to standard credentials key for backwards compatibility down the line if we want
+        const savedCreds = localStorage.getItem(CREDENTIALS_KEY);
         let adAccountId = "";
         if (savedCreds) {
           try {
@@ -109,7 +119,7 @@ export function useFacebookAuth() {
             adAccountId = parsed.adAccountId || "";
           } catch {}
         }
-        localStorage.setItem("vusk_fb_credentials", JSON.stringify({
+        localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({
           accessToken,
           adAccountId,
           datePreset: "last_7d"
@@ -139,14 +149,14 @@ export function useFacebookAuth() {
       }
     }, 500);
 
-  }, [isConnecting]);
+  }, [isConnecting, STORAGE_KEY, CREDENTIALS_KEY]);
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("vusk_fb_credentials");
+    localStorage.removeItem(CREDENTIALS_KEY);
     setAuthState(emptyState());
     setError(null);
-  }, []);
+  }, [STORAGE_KEY, CREDENTIALS_KEY]);
 
   return { authState, isConnecting, error, login, logout };
 }

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFacebookAuth } from "../hooks/useFacebookAuth";
+import { useOperator } from "../contexts/OperatorContext";
 
 interface AccountInsights {
   spend: string;
@@ -43,6 +44,8 @@ interface AdSet {
 }
 
 export function FacebookAdsPanel() {
+  const operator = useOperator();
+  const CREDENTIALS_KEY = `vusk_fb_credentials_${operator.toLowerCase()}`;
   const { authState, isConnecting, error: authError, login, logout } = useFacebookAuth();
 
   // Credentials & Filters states
@@ -81,7 +84,7 @@ export function FacebookAdsPanel() {
 
   // Set date preset from local credentials on mount
   useEffect(() => {
-    const saved = localStorage.getItem("vusk_fb_credentials");
+    const saved = localStorage.getItem(CREDENTIALS_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -92,7 +95,7 @@ export function FacebookAdsPanel() {
         console.error("Erro ao carregar pré-configuração local", e);
       }
     }
-  }, []);
+  }, [CREDENTIALS_KEY]);
 
   // Fetch ad accounts automatically when connected
   useEffect(() => {
@@ -106,7 +109,7 @@ export function FacebookAdsPanel() {
             setAdAccounts(data.accounts || []);
             
             // If user already had an adAccountId stored, use it
-            const saved = localStorage.getItem("vusk_fb_credentials");
+            const saved = localStorage.getItem(CREDENTIALS_KEY);
             let preservedId = "";
             if (saved) {
               try {
@@ -136,7 +139,7 @@ export function FacebookAdsPanel() {
       setAdAccounts([]);
       setAdAccountId("");
     }
-  }, [authState.isConnected, authState.accessToken]);
+  }, [authState.isConnected, authState.accessToken, CREDENTIALS_KEY]);
 
   // Formatters
   const formatCurrency = (value: string | number | undefined) => {
@@ -225,7 +228,7 @@ export function FacebookAdsPanel() {
 
       // Auto-save the selection
       localStorage.setItem(
-        "vusk_fb_credentials",
+        CREDENTIALS_KEY,
         JSON.stringify({ accessToken: cleanToken, adAccountId: cleanId, datePreset })
       );
 
@@ -329,6 +332,14 @@ export function FacebookAdsPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Indicador de Perfil */}
+      <div className="flex items-center gap-2 mb-4 bg-zinc-950/20 border border-white/5 rounded-xl px-3 py-1.5 w-fit">
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+        <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
+          Integração de {operator}
+        </span>
+      </div>
+
       {!authState.isConnected ? (
         <div className="border border-white/5 bg-zinc-950/40 rounded-2xl p-5 space-y-5">
           <div className="flex flex-col items-center justify-center py-16 space-y-6">
@@ -442,7 +453,7 @@ export function FacebookAdsPanel() {
                   onChange={(e) => {
                     setAdAccountId(e.target.value);
                     localStorage.setItem(
-                      "vusk_fb_credentials",
+                      CREDENTIALS_KEY,
                       JSON.stringify({ accessToken, adAccountId: e.target.value, datePreset })
                     );
                   }}
@@ -468,7 +479,7 @@ export function FacebookAdsPanel() {
                   onChange={(e) => {
                     setDatePreset(e.target.value);
                     localStorage.setItem(
-                      "vusk_fb_credentials",
+                      CREDENTIALS_KEY,
                       JSON.stringify({ accessToken, adAccountId, datePreset: e.target.value })
                     );
                   }}

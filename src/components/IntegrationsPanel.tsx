@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link2, Sparkles, Server, ChevronRight, ChevronDown, Check, Info } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { FacebookAdsPanel } from "./FacebookAdsPanel";
+import { useOperator } from "../contexts/OperatorContext";
 
 interface IntegrationItem {
   id: string;
@@ -13,12 +14,14 @@ interface IntegrationItem {
 }
 
 export function IntegrationsPanel() {
+  const operator = useOperator();
+  const CREDENTIALS_KEY = `vusk_fb_credentials_${operator.toLowerCase()}`;
   const [activeIntegration, setActiveIntegration] = useState<string | null>(null);
 
   // Check if credentials exist in localStorage specifically for the label indicator
   const hasFbCredentials = React.useMemo(() => {
     try {
-      const saved = localStorage.getItem("vusk_fb_credentials");
+      const saved = localStorage.getItem(CREDENTIALS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         return !!(parsed.accessToken && parsed.adAccountId);
@@ -27,7 +30,7 @@ export function IntegrationsPanel() {
       return false;
     }
     return false;
-  }, [activeIntegration]);
+  }, [activeIntegration, CREDENTIALS_KEY]);
 
   const handleToggleIntegration = (id: string, status: string) => {
     if (status === "em_breve") return;

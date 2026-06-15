@@ -18,6 +18,7 @@ import { IntegrationsPanel } from "./components/IntegrationsPanel";
 import { FacebookCallbackHandler } from "./components/FacebookCallbackHandler";
 import { LandingScreen } from "./components/LandingScreen";
 import { useAuth } from "./hooks/useAuth";
+import { OperatorContext } from "./contexts/OperatorContext";
 import { isSupabaseConfigured } from "./lib/supabase";
 import { fetchOffersFromSupabase } from "./lib/databaseService";
 
@@ -176,7 +177,7 @@ export default function App() {
     return <FacebookCallbackHandler />;
   }
 
-  const { isAuthenticated, isChecking, authenticate } = useAuth();
+  const { isAuthenticated, isChecking, currentOperator, authenticate, logout } = useAuth();
   const [showApp, setShowApp] = useState(false);
 
   useEffect(() => {
@@ -277,7 +278,8 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#060607] text-white flex flex-col md:flex-row font-sans selection:bg-primary/30 selection:text-white relative overflow-x-hidden transition-opacity duration-500 ${showApp ? "opacity-100" : "opacity-0"}`}>
+    <OperatorContext.Provider value={currentOperator || "Bernardo"}>
+      <div className={`min-h-screen bg-[#060607] text-white flex flex-col md:flex-row font-sans selection:bg-primary/30 selection:text-white relative overflow-x-hidden transition-opacity duration-500 ${showApp ? "opacity-100" : "opacity-0"}`}>
       {/* Background Dots */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none z-0"></div>
 
@@ -300,6 +302,9 @@ export default function App() {
               <div className="font-sans font-extrabold text-xs tracking-wider uppercase text-white flex items-center gap-1">
                 VUSK<span className="text-primary font-bold"> </span>OPERATION
                 <span className="text-[9px] text-zinc-500 font-mono font-medium px-1.5 py-0.5 rounded bg-white/5 border border-white/5">v5</span>
+              </div>
+              <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mt-0.5 select-none text-left">
+                Operador: <span className="text-red-500 font-bold">{currentOperator}</span>
               </div>
             </div>
           </div>
@@ -526,6 +531,13 @@ export default function App() {
             <span className="text-[10px] text-zinc-400 font-sans tracking-wide">STATUS ONLINE</span>
             <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]"></span>
           </div>
+
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-red-500/15 text-[10px] font-sans font-bold tracking-wider text-red-500 hover:bg-red-500/10 transition-all uppercase cursor-pointer"
+          >
+            Sair do Perfil
+          </button>
         </div>
       </aside>
 
@@ -684,6 +696,16 @@ export default function App() {
               <Database className="w-4 h-4" />
               <span>{isSupabaseConfigured ? "Supabase Vinculado" : "Vincular Supabase"}</span>
             </button>
+
+            <button
+              onClick={() => {
+                logout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-full border border-red-500/20 text-[11px] font-sans font-bold tracking-widest text-[#FF2A2A] hover:bg-red-500/10 transition-all uppercase cursor-pointer"
+            >
+              Sair do Perfil ({currentOperator})
+            </button>
           </div>
         </div>
       )}
@@ -787,6 +809,7 @@ export default function App() {
           onClose={() => setIsSupabaseOpen(false)}
         />
       )}
-    </div>
+      </div>
+    </OperatorContext.Provider>
   );
 }
