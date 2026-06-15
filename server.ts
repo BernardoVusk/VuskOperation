@@ -480,7 +480,7 @@ app.get("/api/trackers", (req, res) => {
 const FB_APP_ID = process.env.FACEBOOK_APP_ID || "1297847892562716";
 const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "";
 const FB_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 
-  "https://vuskoperation.netlify.app/auth/facebook/callback";
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/auth/facebook/callback` : "https://vuskoperation.netlify.app/auth/facebook/callback");
 
 // GET /api/facebook/exchange-code
 // Recebe o code do React callback handler e troca pelos tokens
@@ -494,7 +494,7 @@ app.get("/api/facebook/exchange-code", async (req, res) => {
   const FB_APP_ID = process.env.FACEBOOK_APP_ID || "1297847892562716";
   const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "";
   const FB_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI ||
-    "https://vuskoperation.netlify.app/auth/facebook/callback";
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/auth/facebook/callback` : "https://vuskoperation.netlify.app/auth/facebook/callback");
 
   try {
     // Passo 1: Trocar code por token curto
@@ -3200,4 +3200,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

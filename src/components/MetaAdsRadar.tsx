@@ -367,14 +367,14 @@ export function MetaAdsRadar() {
     <div className="space-y-8 animate-fade-in text-sans">
       
       {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#101011]/40 border border-white/5 backdrop-blur-md p-6 rounded-2xl select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mac-card p-6 select-none">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#FF2A2A] animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#FF453A] animate-pulse"></span>
             <span className="text-[10px] text-primary font-bold uppercase tracking-widest font-mono">AD-RADAR INTELLIGENCE</span>
           </div>
           <h2 className="text-xl font-black text-white tracking-wide">Radar Meta Ads</h2>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-ink-secondary">
             Copie palavras de alta intenção com 1 clique para colar no campo de pesquisa da Biblioteca de Anúncios.
           </p>
         </div>
@@ -382,7 +382,7 @@ export function MetaAdsRadar() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => loadRadarData()}
-            className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all text-zinc-400 hover:text-white cursor-pointer active:scale-95"
+            className="w-11 h-11 flex items-center justify-center mac-btn-secondary text-zinc-400 hover:text-white cursor-pointer"
             title="Sincronizar"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-primary" : ""}`} />
@@ -390,7 +390,7 @@ export function MetaAdsRadar() {
           
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold tracking-wide transition-all shadow-[0_0_15px_rgba(255,42,42,0.3)] hover:shadow-[0_0_20px_rgba(255,42,42,0.5)] active:scale-95 cursor-pointer h-11"
+            className="flex items-center gap-2 px-5 py-3 mac-btn-primary text-white text-xs font-bold tracking-wide cursor-pointer h-11"
           >
             <Plus className="w-4 h-4" />
             <span>Nova Categoria</span>
@@ -400,14 +400,14 @@ export function MetaAdsRadar() {
 
       {/* ERROR / INFO WARNING FOR SQL NOT SETUP */}
       {errorMsg && (
-        <div className="bg-red-500/10 border border-red-500/15 rounded-2xl p-4 flex gap-3 text-xs text-red-200">
-          <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+        <div className="bg-systemRed/10 border border-systemRed/25 rounded-mac-lg p-4 flex gap-3 text-xs text-red-200">
+          <AlertCircle className="w-5 h-5 shrink-0 text-systemRed" />
           <div className="space-y-2">
             <p className="font-bold">Aviso de Configuração:</p>
             <p>{errorMsg}</p>
             <button
               onClick={() => setIsSqlVisible(true)}
-              className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/20 hover:border-red-500/30 rounded-lg font-mono text-[10px] uppercase font-bold tracking-wider text-rose-300 transition-all"
+              className="px-3 py-1.5 bg-systemRed/20 hover:bg-systemRed/30 border border-systemRed/25 rounded-mac-sm font-mono text-[10px] uppercase font-bold tracking-wider text-rose-300 transition-all cursor-pointer"
             >
               Ver Script SQL de Ajuste
             </button>
@@ -419,22 +419,22 @@ export function MetaAdsRadar() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs text-zinc-500 font-mono">Buscando dados no Supabase...</span>
+          <span className="text-xs text-ink-tertiary font-mono">Buscando dados no Supabase...</span>
         </div>
       ) : categories.length === 0 ? (
-        <div className="bg-[#101011]/80 border border-white/5 backdrop-blur-md rounded-2xl p-10 text-center space-y-4 select-none">
-          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/5 flex items-center justify-center mx-auto text-zinc-400">
+        <div className="mac-card p-10 text-center space-y-4 select-none">
+          <div className="w-12 h-12 rounded-full bg-surface-raised border border-hairline flex items-center justify-center mx-auto text-ink-secondary">
             <Layers className="w-6 h-6" />
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-semibold text-white">Nenhum canal ou categoria ativa</h4>
-            <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-ink-secondary max-w-md mx-auto leading-relaxed">
               Adicione categorias com palavras-chave relevantes para o Meta Ads. Você pode usar o botão "Nova Categoria" para criar a sua agora mesmo.
             </p>
           </div>
           <button
             onClick={openCreateModal}
-            className="px-4 py-2 bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 rounded-xl text-xs font-bold transition-all text-white active:scale-95 cursor-pointer ml-auto mr-auto"
+            className="px-4 py-2 mac-btn-secondary text-white text-xs font-bold ml-auto mr-auto"
           >
             Começar Agora
           </button>
@@ -445,7 +445,7 @@ export function MetaAdsRadar() {
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                className="w-80 bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-2xl p-5 flex flex-col justify-between space-y-5 shadow-lg transition-all hover:bg-[#121214] hover:border-white/10"
+                className="w-80 mac-card p-5 flex flex-col justify-between space-y-5 shadow-lg transition-all hover:bg-surface-raised"
               >
                 {/* Column header */}
                 <div className="space-y-2">
@@ -454,14 +454,14 @@ export function MetaAdsRadar() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => openEditModal(cat)}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all cursor-pointer active:scale-90"
+                        className="p-1.5 rounded-mac-sm text-zinc-500 hover:text-white hover:bg-surface-base transition-all cursor-pointer"
                         title="Editar Categoria / Palavras-chave"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
-                        className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer active:scale-90"
+                        className="p-1.5 rounded-mac-sm text-zinc-600 hover:text-systemRed hover:bg-systemRed/10 transition-all cursor-pointer"
                         title="Excluir Categoria"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -470,18 +470,18 @@ export function MetaAdsRadar() {
                   </div>
                   
                   {cat.description && (
-                    <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
+                    <p className="text-[11px] text-ink-secondary leading-relaxed font-medium">
                       {cat.description}
                     </p>
                   )}
                   
-                  <div className="border-b border-white/5 pt-1.5"></div>
+                  <div className="border-b border-hairline pt-1.5"></div>
                 </div>
 
                 {/* Keyword Pills Panel */}
                 <div className="flex-1 flex flex-wrap gap-2 content-start min-h-[140px]">
                   {cat.keywords.length === 0 ? (
-                    <div className="w-full flex flex-col items-center justify-center p-6 border border-dashed border-white/5 rounded-xl text-center select-none text-[10px] text-zinc-500">
+                    <div className="w-full flex flex-col items-center justify-center p-6 border border-dashed border-hairline rounded-mac-md text-center select-none text-[10px] text-ink-tertiary">
                       Sem palavras-chave
                     </div>
                   ) : (
@@ -491,20 +491,20 @@ export function MetaAdsRadar() {
                         <button
                           key={kw.id}
                           onClick={() => handleCopyKeyword(kw.word, kw.id)}
-                          className={`group relative flex items-center gap-1.5 pl-3 pr-2.5 py-2.5 rounded-xl text-[11px] font-sans font-bold tracking-wide border cursor-pointer select-none transition-all active:scale-[0.93] min-h-[38px] ${
+                          className={`group relative flex items-center gap-1.5 pl-3 pr-2.5 py-2.5 rounded-mac-md text-[11px] font-sans font-bold tracking-wide border cursor-pointer select-none transition-all active:scale-[0.93] min-h-[38px] ${
                             isCopied
-                              ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
-                              : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-300 hover:text-white"
+                              ? "bg-systemGreen/15 border-systemGreen/30 text-systemGreen shadow-[0_0_10px_rgba(48,209,88,0.15)]"
+                              : "bg-surface-raised border border-hairline hover:bg-surface-raised/40 text-ink-secondary hover:text-white"
                           }`}
                         >
-                          <Tag className={`w-3 h-3 transition-transform duration-200 group-hover:rotate-12 ${isCopied ? "text-emerald-400" : "text-primary"}`} />
+                          <Tag className={`w-3 h-3 transition-transform duration-200 group-hover:rotate-12 ${isCopied ? "text-systemGreen" : "text-primary"}`} />
                           
                           <span>{kw.word}</span>
                           
                           {isCopied ? (
-                            <Check className="w-3 h-3 text-emerald-400 animate-scale-in" />
+                            <Check className="w-3 h-3 text-systemGreen animate-scale-in" />
                           ) : (
-                            <Copy className="w-2.5 h-2.5 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5" />
+                            <Copy className="w-2.5 h-2.5 text-ink-tertiary opacity-0 group-hover:opacity-100 transition-opacity ml-0.5" />
                           )}
                         </button>
                       );
@@ -514,7 +514,7 @@ export function MetaAdsRadar() {
 
                 {/* Foot indicators */}
                 <div className="pt-2 select-none">
-                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[9px] font-mono font-bold text-ink-tertiary uppercase tracking-widest">
                     {cat.keywords.length} PALAVRAS-CHAVE
                   </span>
                 </div>
@@ -528,11 +528,11 @@ export function MetaAdsRadar() {
 
       {/* NEW CATEGORY MODAL DIALOG */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/85 z-55 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in font-sans">
-          <div className="w-full max-w-lg bg-[#0e0e10] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 mac-glass z-50 flex items-center justify-center p-4 animate-fade-in font-sans">
+          <div className="w-full max-w-lg mac-card overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             
             {/* Modal Head */}
-            <div className="p-5 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-zinc-950 to-[#0e0e10] select-none">
+            <div className="p-5 border-b border-hairline flex items-center justify-between select-none">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -541,7 +541,7 @@ export function MetaAdsRadar() {
               </div>
               <button
                 onClick={closeModal}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer active:scale-90"
+                className="p-1.5 rounded-mac-sm text-ink-secondary hover:text-white hover:bg-surface-base transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -552,7 +552,7 @@ export function MetaAdsRadar() {
               
               {/* Category Name Area */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider font-mono">
+                <label className="text-[10px] font-extrabold uppercase text-ink-secondary tracking-wider font-mono">
                   Nome da Categoria <span className="text-primary">*</span>
                 </label>
                 <input
@@ -561,14 +561,14 @@ export function MetaAdsRadar() {
                   placeholder="Ex: Emagrecimento, Dropshipping, Renda Extra..."
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#131316] border border-white/5 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-primary/50 transition-all"
+                  className="w-full mac-input text-white text-sm outline-none px-4 py-3"
                   style={{ fontSize: "16px" }} // Prevent iOS auto-zoom
                 />
               </div>
 
               {/* Description field */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider font-mono">
+                <label className="text-[10px] font-extrabold uppercase text-ink-secondary tracking-wider font-mono">
                   Descrição / Objetivo (Opcional)
                 </label>
                 <textarea
@@ -576,14 +576,14 @@ export function MetaAdsRadar() {
                   rows={2}
                   value={newCatDesc}
                   onChange={(e) => setNewCatDesc(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#131316] border border-white/5 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-primary/50 transition-all resize-none"
+                  className="w-full mac-input text-white text-sm outline-none px-4 py-3 rounded-2xl resize-none"
                   style={{ fontSize: "16px" }}
                 />
               </div>
 
               {/* Keywords dynamic adding inputs */}
               <div className="space-y-2">
-                <label className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider font-mono block">
+                <label className="text-[10px] font-extrabold uppercase text-ink-secondary tracking-wider font-mono block">
                   Adicionar Palavras-Chave
                 </label>
                 <div className="flex gap-2">
@@ -593,35 +593,35 @@ export function MetaAdsRadar() {
                     value={currentKeywordInput}
                     onChange={(e) => setCurrentKeywordInput(e.target.value)}
                     onKeyDown={handleKeywordKeyDown}
-                    className="flex-1 px-4 py-3 bg-[#131316] border border-white/5 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-primary/50 transition-all"
+                    className="flex-1 mac-input text-white text-sm outline-none px-4 py-3"
                     style={{ fontSize: "16px" }}
                   />
                   <button
                     type="button"
                     onClick={() => handleAddStagedKeyword()}
-                    className="px-4 bg-white/5 hover:bg-white/10 hover:text-white text-zinc-300 border border-white/5 rounded-xl text-xs font-bold font-sans cursor-pointer transition-all active:scale-95 whitespace-nowrap"
+                    className="px-4 mac-btn-secondary text-white text-xs font-bold font-sans cursor-pointer whitespace-nowrap"
                   >
                     Adicionar
                   </button>
                 </div>
 
                 {/* Staging pills indicator */}
-                <div className="border border-white/5 bg-[#141417]/45 p-3 rounded-xl min-h-[90px] flex flex-wrap gap-2 content-start">
+                <div className="border border-hairline bg-surface-base p-3 rounded-mac-lg min-h-[90px] flex flex-wrap gap-2 content-start">
                   {stagedKeywords.length === 0 ? (
-                    <span className="text-[10px] text-zinc-500 self-center mx-auto select-none font-mono">
+                    <span className="text-[10px] text-ink-tertiary self-center mx-auto select-none font-mono">
                       Nenhuma palavra adicionada no rascunho
                     </span>
                   ) : (
                     stagedKeywords.map((word, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center gap-1 bg-primary/10 border border-primary/20 text-white rounded-lg pl-2.5 pr-1.5 py-1 text-[11px] font-semibold animate-scale-in"
+                        className="inline-flex items-center gap-1 bg-primary/10 border border-primary/25 text-white rounded-mac-lg pl-2.5 pr-1.5 py-1 text-[11px] font-semibold animate-scale-in"
                       >
                         <span>{word}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveStagedKeyword(index)}
-                          className="p-0.5 hover:bg-white/10 rounded text-zinc-400 hover:text-red-400 cursor-pointer transition-all"
+                          className="p-0.5 hover:bg-white/10 rounded-mac-sm text-ink-tertiary hover:text-systemRed cursor-pointer transition-all"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -632,18 +632,18 @@ export function MetaAdsRadar() {
               </div>
 
               {/* Footer action buttons */}
-              <div className="pt-4 border-t border-white/5 flex items-center justify-end gap-3 select-none">
+              <div className="pt-4 border-t border-hairline flex items-center justify-end gap-3 select-none">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-3 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-5 py-3 text-ink-secondary hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/95 text-white disabled:opacity-50 font-bold text-xs tracking-wide rounded-xl shadow-[0_0_12px_rgba(255,42,42,0.2)] hover:shadow-[0_0_20px_rgba(255,42,42,0.4)] transition-all cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 mac-btn-primary text-white disabled:opacity-50 font-bold text-xs tracking-wide cursor-pointer"
                 >
                   {isSaving ? (
                     <>
@@ -663,7 +663,7 @@ export function MetaAdsRadar() {
 
       {/* FLOAT GLOBAL SATISFYING CLIPBOARD TOAST */}
       {showCopyToast && (
-        <div className="fixed bottom-6 right-6 z-[80] bg-[#10B981] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-slide-up select-none tracking-wide">
+        <div className="fixed bottom-6 right-6 z-[80] bg-systemGreen text-white px-5 py-3 rounded-mac-lg shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-slide-up select-none tracking-wide">
           <Check className="w-4 h-4 text-white" />
           <span>{toastText}</span>
         </div>

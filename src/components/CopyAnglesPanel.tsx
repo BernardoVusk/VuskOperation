@@ -151,8 +151,8 @@ export function CopyAnglesPanel() {
         <div>
           <div className="flex items-center gap-2 mb-2 select-none">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF2A2A] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF2A2A]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF453A] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF453A]"></span>
             </span>
             <span className="text-[10px] font-bold font-mono text-zinc-400 tracking-widest uppercase">
               COPY INTELLIGENCE
@@ -183,8 +183,8 @@ export function CopyAnglesPanel() {
       )}
 
       {status === "error" && (
-        <div className="p-6 bg-[#1a0a0a] border border-[#FF2A2A]/20 rounded-3xl max-w-2xl mx-auto text-center space-y-4 shadow-lg">
-          <div className="w-12 h-12 bg-[#FF2A2A]/10 border border-[#FF2A2A]/20 text-[#FF2A2A] rounded-2xl flex items-center justify-center mx-auto">
+        <div className="p-6 bg-[#1a0a0a] border border-[#FF453A]/20 rounded-3xl max-w-2xl mx-auto text-center space-y-4 shadow-lg">
+          <div className="w-12 h-12 bg-[#FF453A]/10 border border-[#FF453A]/20 text-[#FF453A] rounded-2xl flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
           <div className="space-y-1.5Packed">

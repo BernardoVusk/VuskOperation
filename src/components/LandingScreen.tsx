@@ -85,7 +85,7 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#060607] text-white flex flex-col items-center justify-center relative overflow-hidden select-none font-sans">
+    <div className="w-screen h-screen bg-[#151517] text-white flex flex-col items-center justify-center relative overflow-hidden select-none font-sans">
       
       {/* SVG noise texture grid overlays */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none z-0"></div>
@@ -101,13 +101,22 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex flex-col items-center justify-center p-6 text-center space-y-8 z-10 max-w-sm"
+            className="mac-card mac-fade-in flex flex-col items-center justify-center p-8 sm:p-10 text-center space-y-8 z-10 w-full max-w-sm mx-4"
           >
+            {/* macOS styling touch - Traffic lights decoration */}
+            <div className="absolute top-4 left-4">
+              <div className="mac-traffic-lights">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+
             {/* Custom high-end operator hexagonal logo tag */}
             <div className="relative group flex items-center justify-center">
               <svg 
                 viewBox="0 0 100 100" 
-                className="w-16 h-16 text-primary filter drop-shadow-[0_0_15px_rgba(255,42,42,0.4)] animate-pulse"
+                className="w-16 h-16 text-primary filter drop-shadow-[0_0_15px_rgba(255,69,58,0.4)] animate-pulse"
                 fill="none" 
                 stroke="currentColor" 
                 strokeWidth="4"
@@ -142,10 +151,10 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
             </p>
 
             {/* High interactive action triggers */}
-            <div className="w-full pt-4">
+            <div className="w-full pt-2">
               <button
                 onClick={handleStartLogin}
-                className="w-full min-h-[48px] py-4 px-8 bg-primary hover:bg-red-600 text-white font-bold tracking-widest text-xs rounded-xl uppercase shadow-[0_0_20px_rgba(255,42,42,0.4)] hover:shadow-[0_0_35px_rgba(255,42,42,0.6)] transition-all duration-300 transform hover:scale-[1.02] cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+                className="mac-btn-primary w-full min-h-[48px] py-4 px-8 text-white font-bold tracking-widest text-xs uppercase cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>ACESSAR SISTEMA</span>
               </button>
@@ -158,10 +167,19 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.25 }}
-            className="flex flex-col items-center justify-center p-6 text-center z-10 w-full max-w-sm"
+            className="mac-card mac-fade-in flex flex-col items-center justify-center p-8 sm:p-10 text-center z-10 w-full max-w-sm mx-4 relative"
           >
+            {/* macOS styling touch - Traffic lights decoration */}
+            <div className="absolute top-4 left-4">
+              <div className="mac-traffic-lights">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+
             {/* Custom lock container screen header */}
-            <div className="mb-6 w-14 h-14 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center relative shadow-[0_0_15px_rgba(255,42,42,0.2)]">
+            <div className="mb-6 w-14 h-14 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center relative shadow-[0_0_15px_rgba(255,69,58,0.2)]">
               <Lock className="w-6 h-6 text-primary" />
             </div>
 
@@ -196,8 +214,8 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
                     className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider
                       font-mono transition-all border cursor-pointer ${
                       selectedOperator === name
-                        ? "bg-primary/10 border-primary text-white shadow-[0_0_15px_rgba(255,42,42,0.2)]"
-                        : "bg-[#141416] border-white/5 text-zinc-500 hover:border-white/10 hover:text-zinc-300"
+                        ? "bg-primary/15 border-primary text-white shadow-[0_0_15px_rgba(255,69,58,0.25)]"
+                        : "mac-btn-secondary text-zinc-500 border-white/5 hover:text-zinc-300"
                     }`}
                   >
                     {name}
@@ -225,7 +243,7 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
                   }}
                   disabled={isVerifying || !selectedOperator}
                   placeholder="••••••••"
-                  className={`w-full bg-[#111113] border text-center tracking-widest text-white px-4 py-3.5 focus:outline-none transition-all duration-200 uppercase font-mono rounded-xl max-w-[240px] mx-auto block ${
+                  className={`mac-input w-full text-center tracking-widest text-white px-4 py-3.5 focus:outline-none transition-all duration-200 uppercase font-mono max-w-[240px] mx-auto block ${
                     showError 
                       ? "border-red-500/50 bg-red-950/10 focus:border-red-500" 
                       : "border-white/5 focus:border-primary/50"
@@ -246,7 +264,7 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
               <button
                 type="submit"
                 disabled={isVerifying || !passwordValue.trim() || !selectedOperator}
-                className="w-full min-h-[44px] max-w-[240px] bg-primary hover:bg-red-600 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-[0_0_15px_rgba(255,42,42,0.3)] transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 mx-auto"
+                className="mac-btn-primary w-full min-h-[44px] max-w-[240px] text-white text-xs font-bold tracking-widest uppercase cursor-pointer active:scale-95 flex items-center justify-center gap-2 mx-auto disabled:opacity-40 disabled:pointer-events-none"
               >
                 {isVerifying ? (
                   <>
@@ -263,7 +281,7 @@ export function LandingScreen({ onAuthenticated }: LandingScreenProps) {
                 <button
                   type="button"
                   onClick={handleBackToPresentation}
-                  className="inline-flex items-center gap-1.5 text-[10px] text-zinc-600 hover:text-zinc-400 font-mono uppercase tracking-widest font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-[10px] text-zinc-650 hover:text-zinc-400 font-mono uppercase tracking-widest font-bold transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3 h-3" />
                   <span>Voltar</span>

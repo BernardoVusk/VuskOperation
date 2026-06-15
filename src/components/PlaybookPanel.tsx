@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { BookOpen, Plus, Trash2, Pencil, Copy, Check, X, AlertTriangle, ChevronUp, ChevronDown, Move, Search, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { RichTextEditor } from "./RichTextEditor";
+import { ensureHtmlContent, htmlToPlainText } from "../utils/textHelpers";
 
 export interface PlaybookPasso {
   id: string;
@@ -190,7 +192,7 @@ export function PlaybookPanel() {
         id: generateUUID(),
         numero: 1,
         titulo: "Prospecção Primária",
-        conteudo: "Busque no Vusk Operation as campanhas mais ativas do nicho..."
+        conteudo: ensureHtmlContent("Busque no Vusk Operation as campanhas mais ativas do nicho...")
       }
     ]);
     setIsModalOpen(true);
@@ -199,7 +201,7 @@ export function PlaybookPanel() {
   const handleOpenEditModal = (pb: Playbook) => {
     setEditingPlaybook(pb);
     setModalTitulo(pb.titulo);
-    setModalPassos(pb.passos.map(p => ({ ...p })));
+    setModalPassos(pb.passos.map(p => ({ ...p, conteudo: ensureHtmlContent(p.conteudo) })));
     setIsModalOpen(true);
   };
 
@@ -358,7 +360,7 @@ export function PlaybookPanel() {
   };
 
   const handleCopyPasso = (passo: PlaybookPasso) => {
-    navigator.clipboard.writeText(passo.conteudo);
+    navigator.clipboard.writeText(htmlToPlainText(passo.conteudo));
     setCopyState(prev => ({ ...prev, [passo.id]: true }));
     setTimeout(() => {
       setCopyState(prev => ({ ...prev, [passo.id]: false }));
@@ -368,7 +370,7 @@ export function PlaybookPanel() {
   const handleCopyPlaybookCompleto = (playbook: Playbook) => {
     let text = `[PLAYBOOK] ${playbook.titulo.toUpperCase()}\n\n`;
     playbook.passos.forEach((p) => {
-      text += `PASSO ${p.numero} — ${p.titulo}\n\n${p.conteudo}\n\n`;
+      text += `PASSO ${p.numero} — ${p.titulo}\n\n${htmlToPlainText(p.conteudo)}\n\n`;
       text += `==================================================\n\n`;
     });
     navigator.clipboard.writeText(text);
@@ -385,14 +387,14 @@ export function PlaybookPanel() {
       
       {/* Network Alert Mode Status Bar */}
       {isOffline && (
-        <div className="mb-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl px-4 py-3 text-xs flex items-center justify-between gap-3 animate-fade-in font-medium">
+        <div className="mb-4 bg-systemYellow/10 border border-systemYellow/25 text-systemYellow rounded-mac-lg px-4 py-3 text-xs flex items-center justify-between gap-3 animate-fade-in font-medium">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-systemYellow shrink-0" />
             <span><strong>Rede Supabase Offline / Não Vinculado:</strong> Todas as alterações nos playbooks estão rodando de forma isolada localmente (LocalStorage) de forma segura.</span>
           </div>
           <button 
             onClick={loadPlaybooks} 
-            className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-colors text-amber-500"
+            className="px-2.5 py-1 bg-systemYellow/10 border border-systemYellow/25 hover:bg-systemYellow/20 text-[10px] font-bold rounded-mac-sm uppercase tracking-wider transition-colors text-systemYellow cursor-pointer"
           >
             Tentar Reconectar
           </button>
@@ -400,18 +402,18 @@ export function PlaybookPanel() {
       )}
 
       {/* Main Container Layout */}
-      <div className="flex flex-col lg:grid lg:grid-cols-[18rem_1fr] h-full min-h-[580px] bg-[#0c0c0e]/80 border border-white/5 rounded-2xl overflow-hidden shadow-2xl relative">
+      <div className="flex flex-col lg:grid lg:grid-cols-[18rem_1fr] h-full min-h-[580px] mac-card rounded-mac-lg overflow-hidden shadow-2xl relative">
         
         {/* Left Sidebar - Playbooks Selector Column */}
-        <aside className="border-b lg:border-b-0 lg:border-r border-white/5 bg-[#09090b]/60 flex flex-col min-w-0" id="playbook-list-sidebar">
+        <aside className="border-b lg:border-b-0 lg:border-r border-hairline bg-surface-base flex flex-col min-w-0" id="playbook-list-sidebar">
           
-          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/15">
+          <div className="p-4 border-b border-hairline flex items-center justify-between bg-surface-base">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-tertiary font-mono">
                 MEUS PLAYBOOKS
               </span>
               {isOffline && (
-                <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/10 text-[8px] font-mono font-bold text-amber-500 scale-90 shrink-0 animate-pulse">
+                <span className="px-1.5 py-0.5 rounded bg-systemYellow/15 border border-systemYellow/20 text-[8px] font-mono font-bold text-systemYellow scale-90 shrink-0 animate-pulse">
                   OFFLINE
                 </span>
               )}
@@ -419,7 +421,7 @@ export function PlaybookPanel() {
             {/* Touch-safe interactive trigger key with min requirements */}
             <button
               onClick={handleOpenCreateModal}
-              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_0_10px_rgba(255,42,42,0.3)] active:scale-95"
+              className="w-8 h-8 rounded-mac-sm bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_0_10px_rgba(255,42,42,0.3)] active:scale-95"
               title="Criar Novo Playbook"
             >
               <Plus className="w-4 h-4" />
@@ -427,21 +429,21 @@ export function PlaybookPanel() {
           </div>
 
           {/* Advanced Search Bar Block */}
-          <div className="p-3 border-b border-white/5 bg-black/10 space-y-2 select-none">
+          <div className="p-3 border-b border-hairline bg-surface-base space-y-2 select-none">
             <div className="relative flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 text-ink-tertiary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Pesquisa avançada..."
-                  className="w-full bg-[#111113] border border-white/5 rounded-xl pl-9 pr-8 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-sans"
+                  className="w-full mac-input rounded-mac-md pl-9 pr-8 py-2 text-xs text-white outline-none"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white p-0.5 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-white p-0.5 cursor-pointer"
                     title="Limpar pesquisa"
                   >
                     <X className="w-3 h-3" />
@@ -450,10 +452,10 @@ export function PlaybookPanel() {
               </div>
               <button
                 onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                className={`p-2 rounded-xl border transition-all duration-200 flex items-center justify-center shrink-0 cursor-pointer ${
+                className={`p-2 rounded-mac-md border transition-all duration-200 flex items-center justify-center shrink-0 cursor-pointer ${
                   showAdvancedOptions || !searchInTitle || !searchInSteps || !searchMatchAll
                     ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 animate-pulse"
-                    : "bg-[#111113] border-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.02]"
+                    : "mac-btn-secondary text-ink-secondary"
                 }`}
                 title="Opções de Pesquisa Avançada"
               >
@@ -468,15 +470,15 @@ export function PlaybookPanel() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden bg-[#0d0d0f] border border-white/5 rounded-xl p-3 space-y-3"
+                  className="overflow-hidden bg-surface-raised border border-hairline rounded-mac-md p-3 space-y-3"
                 >
                   {/* Search in fields options */}
                   <div className="space-y-1.5">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono block">
+                    <span className="text-[9px] font-bold text-ink-tertiary uppercase tracking-widest font-mono block">
                       Pesquisar Em:
                     </span>
                     <div className="flex flex-col gap-2">
-                      <label className="flex items-center gap-2 text-[10px] text-zinc-400 cursor-pointer hover:text-zinc-350 select-none">
+                      <label className="flex items-center gap-2 text-[10px] text-ink-secondary cursor-pointer hover:text-white select-none">
                         <input
                           type="checkbox"
                           checked={searchInTitle}
@@ -484,14 +486,14 @@ export function PlaybookPanel() {
                             setSearchInTitle(e.target.checked);
                             // Avoid having both unchecked
                             if (!e.target.checked && !searchInSteps) {
-                              setSearchInSteps(true);
+                                setSearchInSteps(true);
                             }
                           }}
                           className="accent-primary w-3.5 h-3.5 rounded border-white/10 bg-[#141416] text-primary cursor-pointer"
                         />
                         <span>Título do Playbook</span>
                       </label>
-                      <label className="flex items-center gap-2 text-[10px] text-zinc-400 cursor-pointer hover:text-zinc-250 select-none">
+                      <label className="flex items-center gap-2 text-[10px] text-ink-secondary cursor-pointer hover:text-white select-none">
                         <input
                           type="checkbox"
                           checked={searchInSteps}
@@ -499,7 +501,7 @@ export function PlaybookPanel() {
                             setSearchInSteps(e.target.checked);
                             // Avoid having both unchecked
                             if (!e.target.checked && !searchInTitle) {
-                              setSearchInTitle(true);
+                                setSearchInTitle(true);
                             }
                           }}
                           className="accent-primary w-3.5 h-3.5 rounded border-white/10 bg-[#141416] text-primary cursor-pointer"
@@ -510,27 +512,27 @@ export function PlaybookPanel() {
                   </div>
 
                   {/* Word match method options */}
-                  <div className="space-y-2 pt-2 border-t border-white/[0.04]">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono block">
+                  <div className="space-y-2 pt-2 border-t border-hairline">
+                    <span className="text-[9px] font-bold text-ink-tertiary uppercase tracking-widest font-mono block">
                       Critério de Palavras:
                     </span>
-                    <div className="grid grid-cols-2 gap-1 bg-[#141416] p-0.5 rounded-lg border border-white/5">
+                    <div className="grid grid-cols-2 gap-1 bg-surface-base p-0.5 rounded-mac-sm border border-hairline">
                       <button
                         onClick={() => setSearchMatchAll(true)}
-                        className={`text-[9px] py-1 px-1.5 rounded-md font-semibold font-mono tracking-wide transition-all cursor-pointer ${
+                        className={`text-[9px] py-1 px-1.5 rounded-mac-sm font-semibold font-mono tracking-wide transition-all cursor-pointer ${
                           searchMatchAll
                             ? "bg-primary text-white shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-300 bg-transparent"
+                            : "text-ink-tertiary hover:text-white bg-transparent"
                         }`}
                       >
                         TODAS (E)
                       </button>
                       <button
                         onClick={() => setSearchMatchAll(false)}
-                        className={`text-[9px] py-1 px-1.5 rounded-md font-semibold font-mono tracking-wide transition-all cursor-pointer ${
+                        className={`text-[9px] py-1 px-1.5 rounded-mac-sm font-semibold font-mono tracking-wide transition-all cursor-pointer ${
                           !searchMatchAll
                             ? "bg-primary text-white shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-300 bg-transparent"
+                            : "text-ink-tertiary hover:text-white bg-transparent"
                         }`}
                       >
                         QUALQUER (OU)
@@ -543,7 +545,7 @@ export function PlaybookPanel() {
             
             {/* Search active results feedback */}
             {searchQuery && (
-              <div className="flex items-center justify-between text-[9px] text-zinc-500 font-mono px-0.5 pt-1">
+              <div className="flex items-center justify-between text-[9px] text-ink-tertiary font-mono px-0.5 pt-1">
                 <span>{filteredPlaybooks.length} correspondência{filteredPlaybooks.length === 1 ? "" : "s"}</span>
                 <button
                   onClick={() => {
@@ -557,34 +559,34 @@ export function PlaybookPanel() {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[350px] lg:max-h-[600px] p-3 space-y-1.5 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto max-h-[350px] lg:max-h-[600px] p-3 space-y-1.5 scrollbar-none">
             {isLoading ? (
-              <div className="py-12 text-center text-xs text-zinc-500 animate-pulse">
+              <div className="py-12 text-center text-xs text-ink-tertiary animate-pulse">
                 Carregando playbooks...
               </div>
             ) : playbooks.length === 0 ? (
               <div className="py-12 px-4 text-center flex flex-col items-center justify-center space-y-4">
-                <BookOpen className="w-8 h-8 text-zinc-600 stroke-1" />
+                <BookOpen className="w-8 h-8 text-ink-tertiary stroke-1" />
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold text-zinc-400">Nenhum playbook ainda</p>
-                  <p className="text-[10px] text-zinc-650 max-w-[160px] leading-relaxed mx-auto">
+                  <p className="text-xs font-semibold text-ink-secondary">Nenhum playbook ainda</p>
+                  <p className="text-[10px] text-ink-tertiary max-w-[160px] leading-relaxed mx-auto">
                     Crie notas operacionais estruturadas para coordenar sua rotina de marketing.
                   </p>
                 </div>
                 {/* Touch target 44px height */}
                 <button
                   onClick={handleOpenCreateModal}
-                  className="min-h-[40px] px-4 bg-primary text-white text-xs font-bold rounded-xl shadow-[0_0_12px_rgba(255,42,42,0.35)] hover:bg-red-600 transition-all cursor-pointer active:scale-95"
+                  className="min-h-[40px] px-4 mac-btn-primary text-white text-xs font-bold transition-all cursor-pointer"
                 >
                   Criar Primeiro Playbook
                 </button>
               </div>
             ) : filteredPlaybooks.length === 0 ? (
-              <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-[#141416]/20 border border-white/5 rounded-2xl">
-                <Search className="w-6 h-6 text-zinc-650" />
+              <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-surface-base border border-hairline rounded-mac-lg animate-fade-in">
+                <Search className="w-6 h-6 text-ink-tertiary" />
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold text-zinc-400">Nenhum resultado</p>
-                  <p className="text-[10px] text-zinc-600 max-w-[165px] leading-relaxed mx-auto">
+                  <p className="text-xs font-semibold text-ink-secondary">Nenhum resultado</p>
+                  <p className="text-[10px] text-ink-tertiary max-w-[165px] leading-relaxed mx-auto">
                     Nenhum playbook corresponde aos seus filtros de busca por palavra.
                   </p>
                 </div>
@@ -595,7 +597,7 @@ export function PlaybookPanel() {
                     setSearchInSteps(true);
                     setSearchMatchAll(true);
                   }}
-                  className="px-3 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-bold rounded-xl uppercase tracking-wider text-zinc-300 transition-all cursor-pointer"
+                  className="px-3 py-1.5 mac-btn-secondary text-[10px] font-bold rounded-mac-sm uppercase tracking-wider text-white transition-all cursor-pointer"
                 >
                   Redefinir Busca
                 </button>
@@ -608,21 +610,21 @@ export function PlaybookPanel() {
                     setSelectedId(pb.id);
                     setDeleteConfirmId(null);
                   }}
-                  className={`w-full text-left p-3.5 rounded-xl border transition-all relative flex flex-col gap-1 cursor-pointer select-none ${
+                  className={`w-full text-left p-3.5 rounded-mac-sm border transition-all relative flex flex-col gap-1 cursor-pointer select-none ${
                     selectedId === pb.id
-                      ? "bg-primary/10 border-primary/30 border-l-2 border-l-primary text-white"
-                      : "bg-[#141416]/40 border-transparent text-zinc-400 hover:text-white hover:bg-white/[0.02] hover:border-l-2 hover:border-l-primary/50"
+                      ? "bg-primary/5 border-primary/30 text-white"
+                      : "bg-transparent border-transparent text-ink-secondary hover:text-white hover:bg-surface-raised hover:border-hairline"
                   }`}
                 >
-                  <span className="text-xs font-bold line-clamp-2 leading-relaxed text-zinc-200">
+                  <span className="text-xs font-bold line-clamp-2 leading-relaxed text-zinc-100">
                     {pb.titulo}
                   </span>
                   
-                  <div className="flex items-center gap-3 mt-1.5 text-[9px] font-mono text-zinc-500 font-semibold uppercase tracking-wider">
-                    <span className="text-primary-light">
+                  <div className="flex items-center gap-3 mt-1.5 text-[9px] font-mono text-ink-tertiary font-semibold uppercase tracking-wider">
+                    <span className="text-primary">
                       {pb.passos.length} {pb.passos.length === 1 ? "passo" : "passos"}
                     </span>
-                    <span className="text-zinc-600">
+                    <span className="text-ink-tertiary">
                       {pb.created_at ? new Date(pb.created_at).toLocaleDateString("pt-BR") : "Data indisponível"}
                     </span>
                   </div>
@@ -633,7 +635,7 @@ export function PlaybookPanel() {
         </aside>
 
         {/* Right Sidebar - Playbook Detailed viewer Column */}
-        <main className="flex-1 bg-[#09090b]/20 flex flex-col min-w-0" id="playbook-viewer-content">
+        <main className="flex-1 bg-surface-base flex flex-col min-w-0" id="playbook-viewer-content">
           
           <AnimatePresence mode="wait">
             {!currentPlaybook ? (
@@ -641,15 +643,15 @@ export function PlaybookPanel() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex-1 flex flex-col items-center justify-center text-center p-8 py-20 space-y-4"
+                className="flex-1 flex flex-col items-center justify-center text-center p-8 py-20 space-y-4 bg-surface-base"
               >
-                <div className="w-14 h-14 bg-white/[0.02] border border-white/5 rounded-full flex items-center justify-center text-zinc-500">
-                  <BookOpen className="w-6 h-6 stroke-1.5 text-[#FF2A2A]" />
+                <div className="w-14 h-14 bg-surface-raised border border-hairline rounded-mac-md flex items-center justify-center text-ink-tertiary">
+                  <BookOpen className="w-6 h-6 stroke-1.5 text-primary" />
                 </div>
                 <div className="space-y-1.5 max-w-sm">
                   <h3 className="text-sm font-bold text-white">Nenhum playbook selecionado</h3>
-                  <p className="text-xs text-zinc-500 leading-relaxed">
-                    Escolha um playbook na lista lateral para visualizar os passos operacionais ou crie um novo processo de decolagem.
+                  <p className="text-xs text-ink-secondary leading-relaxed">
+                     Escolha um playbook na lista lateral para visualizar os passos operacionais ou crie um novo processo de decolagem.
                   </p>
                 </div>
               </motion.div>
@@ -659,20 +661,20 @@ export function PlaybookPanel() {
                 initial={{ opacity: 0, scale: 0.99 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 flex flex-col h-full overflow-hidden"
+                className="flex-1 flex flex-col h-full overflow-hidden bg-surface-base"
               >
                 {/* Header Information area */}
-                <div className="p-6 border-b border-white/5 bg-black/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 justify-start">
+                <div className="p-6 border-b border-hairline bg-surface-base flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 justify-start">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-3 flex-wrap">
                       <h2 className="text-lg font-bold text-white leading-snug tracking-tight">
                         {currentPlaybook.titulo}
                       </h2>
-                      <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-[#FF2A2A] rounded-full text-[9px] font-mono font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 bg-primary/10 border border-primary/25 text-[#FF453A] rounded-mac-md text-[9px] font-mono font-bold uppercase tracking-wider">
                         {currentPlaybook.passos.length} {currentPlaybook.passos.length === 1 ? "PASSO" : "PASSOS"}
                       </span>
                     </div>
-                    <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider font-semibold">
+                    <p className="text-[10px] text-ink-tertiary font-mono uppercase tracking-wider font-semibold">
                       Criado em: {currentPlaybook.created_at ? new Date(currentPlaybook.created_at).toLocaleDateString("pt-BR") : "Módulo Local"} {currentPlaybook.updated_at && `• Atualizado: ${new Date(currentPlaybook.updated_at).toLocaleDateString("pt-BR")}`}
                     </p>
                   </div>
@@ -680,19 +682,19 @@ export function PlaybookPanel() {
                   {/* Actions area */}
                   <div className="flex items-center gap-2 shrink-0">
                     {deleteConfirmId === currentPlaybook.id ? (
-                      <div className="flex items-center gap-1.5 bg-red-950/20 border border-red-500/10 p-1 rounded-xl animate-fade-in">
-                        <span className="text-[9px] text-red-400 font-mono uppercase font-bold tracking-widest px-2">
+                      <div className="flex items-center gap-1.5 bg-systemRed/10 border border-systemRed/25 p-1 rounded-mac-md animate-fade-in">
+                        <span className="text-[9px] text-systemRed font-mono uppercase font-bold tracking-widest px-2">
                           Confirmar Exclusão?
                         </span>
                         <button
                           onClick={() => handleDeletePlaybook(currentPlaybook.id)}
-                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-colors cursor-pointer active:scale-95"
+                          className="px-3 py-1.5 bg-systemRed hover:bg-red-650 text-white font-bold text-[10px] uppercase tracking-wider rounded-mac-sm transition-colors cursor-pointer active:scale-95"
                         >
                           Confirmar
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1.5 bg-[#141416] hover:bg-zinc-800 text-zinc-400 text-[10px] uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                          className="px-3 py-1.5 bg-surface-raised hover:bg-[#202025] text-ink-secondary text-[10px] uppercase tracking-wider rounded-mac-sm transition-colors cursor-pointer"
                         >
                           Cancelar
                         </button>
@@ -702,7 +704,7 @@ export function PlaybookPanel() {
                         {/* Edit Playbook Trigger */}
                         <button
                           onClick={() => handleOpenEditModal(currentPlaybook)}
-                          className="px-3 py-1.5 bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 text-zinc-300 hover:text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 h-10 px-4"
+                          className="px-4 py-1.5 mac-btn-secondary text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded-mac-sm transition-all cursor-pointer flex items-center gap-1.5 h-9"
                         >
                           <Pencil className="w-3.5 h-3.5 text-primary" />
                           <span>Editar</span>
@@ -711,7 +713,7 @@ export function PlaybookPanel() {
                         {/* Prompt deletion trigger */}
                         <button
                           onClick={() => setDeleteConfirmId(currentPlaybook.id)}
-                          className="p-1 w-10 h-10 bg-red-950/10 hover:bg-red-950/30 border border-red-500/10 hover:border-red-500/30 rounded-xl transition-all cursor-pointer flex items-center justify-center text-red-500"
+                          className="p-1 w-9 h-9 bg-systemRed/10 hover:bg-systemRed/15 border border-systemRed/25 rounded-mac-sm transition-all cursor-pointer flex items-center justify-center text-systemRed"
                           title="Excluir Playbook"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -722,30 +724,30 @@ export function PlaybookPanel() {
                 </div>
 
                 {/* Steps sequence core list rendering */}
-                <div className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[500px]">
+                <div className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[500px] scrollbar-none">
                   {currentPlaybook.passos.length === 0 ? (
-                    <div className="text-center py-12 text-zinc-500 text-xs font-medium bg-[#141416]/10 rounded-2xl border border-white/5 border-dashed p-4">
+                    <div className="text-center py-12 text-ink-tertiary text-xs font-medium bg-surface-raised rounded-mac-lg border border-hairline border-dashed p-4">
                       Nenhum passo cadastrado neste playbook. Clique em Editar para começar de forma estruturada.
                     </div>
                   ) : (
                     currentPlaybook.passos.map((passo, idx) => {
                       const isStepCopied = copyState[passo.id] || false;
                       return (
-                        <div key={passo.id} className="relative group">
+                        <div key={passo.id} className="relative group animate-fade-in">
                           {/* Dotted connector lines between nodes */}
                           {idx < currentPlaybook.passos.length - 1 && (
-                            <div className="absolute left-[14px] top-8 bottom-[-45px] w-0.5 border-l-2 border-dashed border-white/5 pointer-events-none"></div>
+                            <div className="absolute left-[14px] top-8 bottom-[-45px] w-0.5 border-l-2 border-dashed border-hairline pointer-events-none"></div>
                           )}
 
                           <div className="flex gap-4">
                             {/* Step number bullet in bold custom template theme red */}
-                            <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-[11px] font-mono font-black text-white shrink-0 shadow-[0_0_10px_rgba(255,42,42,0.5)] z-10">
+                            <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-[11px] font-mono font-bold text-white shrink-0 shadow-[0_0_10px_rgba(255,42,42,0.4)] z-10">
                               {passo.numero}
                             </div>
 
                             {/* Content box */}
-                            <div className="flex-1 bg-[#0d0d0f]/50 border border-white/5 rounded-2xl p-4 sm:p-5 relative overflow-hidden transition-all duration-300 hover:border-white/10">
-                              <div className="flex items-center justify-between gap-4 pb-3 border-b border-white/5 mb-3">
+                            <div className="flex-1 bg-surface-raised border border-hairline rounded-mac-lg p-4 sm:p-5 relative overflow-hidden transition-all duration-300 hover:border-white/10">
+                              <div className="flex items-center justify-between gap-4 pb-2.5 border-b border-hairline mb-3">
                                 <h4 className="text-xs sm:text-sm font-bold text-white tracking-widest uppercase font-mono">
                                   {passo.titulo || `Passo ${passo.numero}`}
                                 </h4>
@@ -753,13 +755,13 @@ export function PlaybookPanel() {
                                 {/* Copy Button inline step */}
                                 <button
                                   onClick={() => handleCopyPasso(passo)}
-                                  className="h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                                  className="h-8 px-3 rounded-mac-sm mac-btn-secondary text-white font-bold transition-all text-[10px] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
                                   title="Copiar conteúdo deste passo"
                                 >
                                   {isStepCopied ? (
                                     <>
-                                      <Check className="w-3.5 h-3.5 text-[#10B981]" />
-                                      <span className="text-[#10B981]">Copiado!</span>
+                                      <Check className="w-3.5 h-3.5 text-systemGreen" />
+                                      <span className="text-systemGreen">Copiado!</span>
                                     </>
                                   ) : (
                                     <>
@@ -770,10 +772,17 @@ export function PlaybookPanel() {
                                 </button>
                               </div>
 
-                              {/* Preserving \n while avoiding code breaks */}
-                              <div className="text-xs text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap selection:bg-primary/20 bg-[#070709]/70 rounded-xl p-3 border border-white/5">
-                                {passo.conteudo || <span className="text-zinc-600 italic">Sem conteúdo cadastrado.</span>}
-                              </div>
+                              {/* Preserving HTML formatting for rich representation */}
+                              {passo.conteudo ? (
+                                <div 
+                                  className="rte-content text-xs text-ink-primary font-sans leading-relaxed selection:bg-primary/20 bg-surface-base rounded-mac-md p-3 border border-hairline"
+                                  dangerouslySetInnerHTML={{ __html: ensureHtmlContent(passo.conteudo) }}
+                                />
+                              ) : (
+                                <div className="text-xs text-ink-tertiary italic font-sans leading-relaxed selection:bg-primary/20 bg-surface-base rounded-mac-md p-3 border border-hairline">
+                                  Sem conteúdo cadastrado.
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -783,20 +792,20 @@ export function PlaybookPanel() {
                 </div>
 
                 {/* Footer Copy All integration footer panel */}
-                <div className="p-4 border-t border-white/5 bg-black/15 flex justify-center items-center select-none">
+                <div className="p-4 border-t border-hairline bg-surface-base flex justify-center items-center select-none">
                   {/* Touch optimized 44px min button */}
                   <button
                     onClick={() => handleCopyPlaybookCompleto(currentPlaybook)}
-                    className="min-h-[44px] px-8 bg-white/5 border border-white/10 hover:border-primary/20 hover:bg-[#FF2A2A]/5 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
+                    className="min-h-[44px] px-8 mac-btn-primary border-0 text-white text-xs font-bold uppercase tracking-widest rounded-mac-md transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
                   >
                     {copyAllSuccess ? (
                       <>
-                        <Check className="w-4 h-4 text-[#10B981]" />
-                        <span className="text-[#10B981]">Roteiro Copiado! ✓</span>
+                        <Check className="w-4 h-4 text-systemGreen" />
+                        <span className="text-systemGreen">Roteiro Copiado! ✓</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4 text-primary" />
+                        <Copy className="w-4 h-4 text-white" />
                         <span>Copiar Playbook Completo</span>
                       </>
                     )}
@@ -815,28 +824,28 @@ export function PlaybookPanel() {
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="bg-[#0c0c0e] border border-white/8 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl relative"
+            className="mac-card rounded-mac-lg w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl relative"
           >
             {/* Modal Header */}
-            <div className="p-5 border-b border-white/5 flex items-center justify-between bg-black/15">
-              <h3 className="text-sm font-black uppercase text-white tracking-widest font-mono flex items-center gap-2">
-                <BookOpen className="w-4.5 h-4.5 text-primary" />
+            <div className="p-5 border-b border-hairline flex items-center justify-between bg-surface-base">
+              <h3 className="text-xs font-bold uppercase text-white tracking-widest font-mono flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-primary" />
                 {editingPlaybook ? "Editar Playbook" : "Novo Playbook de Operações"}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
+                className="p-1.5 rounded-mac-sm hover:text-white hover:bg-white/5 text-ink-secondary transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form Scroll Area */}
-            <div className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[50vh] custom-scrollbar">
+            <div className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[50vh] scrollbar-none">
               
               {/* Title input group */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono block">
+                <label className="text-[10px] font-bold uppercase text-ink-tertiary tracking-wider font-mono block">
                   TÍTULO DO PLAYBOOK
                 </label>
                 <input
@@ -844,18 +853,18 @@ export function PlaybookPanel() {
                   value={modalTitulo}
                   onChange={(e) => setModalTitulo(e.target.value)}
                   placeholder="Ex: Como Criar Oferta, Checklist de Lançamento..."
-                  className="w-full bg-[#141416] border border-white/5 rounded-xl px-4 py-3.5 text-xs text-white focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full mac-input rounded-mac-sm px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary/50 transition-colors"
                   maxLength={100}
                 />
               </div>
 
               {/* Steps creation segment stack */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                  <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
+                <div className="flex items-center justify-between pb-2 border-b border-hairline">
+                  <label className="text-[10px] font-bold uppercase text-ink-tertiary tracking-wider font-mono">
                     PASSOS OPERACIONAIS
                   </label>
-                  <span className="text-[10px] text-zinc-500 font-mono">
+                  <span className="text-[10px] text-ink-tertiary font-mono">
                     {modalPassos.length} {modalPassos.length === 1 ? "passo" : "passos"} descritos
                   </span>
                 </div>
@@ -864,7 +873,7 @@ export function PlaybookPanel() {
                   {modalPassos.map((passo, idx) => (
                     <div 
                       key={passo.id} 
-                      className="p-4 bg-zinc-950/40 border border-white/5 rounded-xl space-y-3 relative group transition-colors hover:border-white/10"
+                      className="p-4 bg-surface-base border border-hairline rounded-mac-md space-y-3 relative group transition-colors hover:border-white/10"
                     >
                       {/* Step index badge & sorting helpers */}
                       <div className="flex items-center justify-between gap-3">
@@ -872,7 +881,7 @@ export function PlaybookPanel() {
                           <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-[10px] font-mono font-bold text-white shadow-sm shrink-0">
                             {passo.numero}
                           </span>
-                          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider font-mono">
+                          <span className="text-[10px] text-ink-secondary font-bold uppercase tracking-wider font-mono">
                             CONFIGURAÇÃO DO PASSO
                           </span>
                         </div>
@@ -885,7 +894,7 @@ export function PlaybookPanel() {
                             type="button"
                             disabled={idx === 0}
                             onClick={() => handleMoveStep(idx, "up")}
-                            className="w-7 h-7 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 bg-surface-raised hover:bg-white/5 disabled:opacity-35 disabled:pointer-events-none rounded flex items-center justify-center text-ink-secondary hover:text-white transition-colors cursor-pointer"
                             title="Mover para cima"
                           >
                             <ChevronUp className="w-3.5 h-3.5" />
@@ -896,7 +905,7 @@ export function PlaybookPanel() {
                             type="button"
                             disabled={idx === modalPassos.length - 1}
                             onClick={() => handleMoveStep(idx, "down")}
-                            className="w-7 h-7 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 bg-surface-raised hover:bg-white/5 disabled:opacity-35 disabled:pointer-events-none rounded flex items-center justify-center text-ink-secondary hover:text-white transition-colors cursor-pointer"
                             title="Mover para baixo"
                           >
                             <ChevronDown className="w-3.5 h-3.5" />
@@ -907,7 +916,7 @@ export function PlaybookPanel() {
                             <button
                               type="button"
                               onClick={() => handleRemoveStep(passo.id)}
-                              className="w-7 h-7 bg-red-950/35 hover:bg-red-800 hover:text-white rounded flex items-center justify-center text-red-400 transition-colors cursor-pointer"
+                              className="w-7 h-7 bg-systemRed/10 hover:bg-systemRed/15 rounded flex items-center justify-center text-systemRed transition-colors cursor-pointer border border-systemRed/20"
                               title="Remover passo"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -923,14 +932,14 @@ export function PlaybookPanel() {
                           value={passo.titulo}
                           onChange={(e) => handleStepFieldChange(passo.id, "titulo", e.target.value)}
                           placeholder="Mapeando gatilhos do nicho"
-                          className="w-full bg-[#111113] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-primary/40 transition-colors"
+                          className="w-full mac-input rounded-mac-sm px-3 py-2.5 text-xs text-white focus:outline-none"
                         />
 
-                        <textarea
+                        <RichTextEditor
                           value={passo.conteudo}
-                          onChange={(e) => handleStepFieldChange(passo.id, "conteudo", e.target.value)}
-                          placeholder="Instruções operacionais detalhadas, checklists ou prompts de comando para as IAs de copy..."
-                          className="w-full bg-[#111113] border border-white/5 rounded-xl px-3 py-2.5 text-xs font-mono text-zinc-200 focus:outline-none focus:border-primary/40 min-h-[100px] resize-none transition-colors"
+                          onChange={(html) => handleStepFieldChange(passo.id, "conteudo", html)}
+                          placeholder="Instruções operacionais detalhadas, checklists ou prompts de comando... (suporta formatação rica)"
+                          minHeight="120px"
                         />
                       </div>
                     </div>
@@ -941,7 +950,7 @@ export function PlaybookPanel() {
                 <button
                   type="button"
                   onClick={handleCreateStep}
-                  className="w-full border-2 border-dashed border-white/5 rounded-xl py-4 bg-white/[0.01] text-zinc-500 hover:border-primary/25 hover:text-zinc-300 hover:bg-white/[0.02] transition-all text-xs font-mono uppercase tracking-wider font-bold text-center cursor-pointer active:scale-[0.99] flex items-center justify-center gap-1.5"
+                  className="w-full border border-dashed border-hairline rounded-mac-md py-4 bg-surface-base text-ink-secondary hover:border-primary/25 hover:text-white hover:bg-surface-raised transition-all text-xs font-mono uppercase tracking-wider font-bold text-center cursor-pointer active:scale-[0.99] flex items-center justify-center gap-1.5"
                 >
                   <Plus className="w-4 h-4 text-primary" />
                   <span>Adicionar Novo Passo Operacional</span>
@@ -951,11 +960,11 @@ export function PlaybookPanel() {
             </div>
 
             {/* Modal Footer Controls */}
-            <div className="p-5 border-t border-white/5 bg-black/15 flex items-center justify-end gap-3 select-none">
+            <div className="p-5 border-t border-hairline bg-surface-base flex items-center justify-end gap-3 select-none">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 hover:text-white border border-white/5 text-zinc-400 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer h-11"
+                className="px-4 py-2 mac-btn-secondary text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -964,7 +973,7 @@ export function PlaybookPanel() {
                 type="button"
                 onClick={handleSavePlaybook}
                 disabled={isSaving || !modalTitulo.trim() || modalPassos.length === 0}
-                className="px-6 py-3 bg-primary hover:bg-red-600 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(255,42,42,0.3)] transition-all cursor-pointer h-11"
+                className="px-5 py-2.5 mac-btn-primary disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
                 {isSaving ? "Gravando Ficha..." : "Salvar Playbook"}
               </button>

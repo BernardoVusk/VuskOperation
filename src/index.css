@@ -1,33 +1,54 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "system-ui", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Premium Spatial Luxury Dark Palette */
-  --color-canvas: #050505;
-  --color-surface-1: #101011;
-  --color-surface-2: #151516;
-  --color-surface-3: #1a1a1c;
-  --color-surface-4: #222224;
-  --color-hairline: rgba(255, 255, 255, 0.05);
-  --color-hairline-strong: rgba(255, 255, 255, 0.1);
-  --color-hairline-tertiary: rgba(255, 255, 255, 0.15);
-  --color-primary: #FF2A2A;
-  --color-primary-hover: #FF4D4D;
-  --color-primary-focus: #CC1F1F;
-  --color-brand-secure: #FF2A2A;
-  --color-ink: #ffffff;
-  --color-ink-muted: #e4e4e7;
-  --color-ink-subtle: #a1a1aa;
-  --color-ink-tertiary: #52525b;
-  --color-semantic-success: #10B981;
+  /* macOS Dark Vibrancy Palette */
+  --color-canvas: #151517;
+  
+  --color-surface-base: #151517;
+  --color-surface-raised: rgba(255, 255, 255, 0.04);
+  --color-surface-raised-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-overlay: rgba(20, 20, 22, 0.7);
+
+  --color-hairline: rgba(255, 255, 255, 0.08);
+  --color-hairline-strong: rgba(255, 255, 255, 0.14);
+
+  --color-primary: #FF453A;
+  --color-primary-dim: rgba(255, 69, 58, 0.12);
+  --color-primary-hover: #FF5C50;
+  --color-primary-focus: #E03B30;
+  --color-brand-secure: #FF453A;
+
+  --color-ink-primary: #F5F5F7;
+  --color-ink-secondary: rgba(245, 245, 247, 0.55);
+  --color-ink-tertiary: rgba(245, 245, 247, 0.32);
+
+  --color-system-green: #30D158;
+  --color-system-blue: #0A84FF;
+  --color-system-yellow: #FFD60A;
+  --color-system-purple: #BF5AF2;
+
+  --radius-mac-sm: 10px;
+  --radius-mac-md: 14px;
+  --radius-mac-lg: 20px;
+  --radius-mac-xl: 28px;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-mac: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+:root {
+  --vibrancy-bg: rgba(28, 28, 32, 0.65);
+  --inner-highlight: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 body {
-  background-color: #020202;
-  color: #ffffff;
+  background: #151517;
+  background-image: radial-gradient(circle at 50% 0%, rgba(255,69,58,0.04), transparent 50%);
+  color: #F5F5F7;
   font-family: var(--font-sans);
   position: relative;
   overflow-x: hidden;
@@ -41,7 +62,7 @@ body::before {
   left: 20%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(255, 42, 42, 0.05) 0%, rgba(59, 7, 18, 0.03) 50%, transparent 100%);
+  background: radial-gradient(circle, rgba(255, 69, 58, 0.05) 0%, rgba(59, 7, 18, 0.03) 50%, transparent 100%);
   filter: blur(80px);
   z-index: -10;
   pointer-events: none;
@@ -62,30 +83,139 @@ body::after {
 
 /* Glassmorphism utility */
 .glass-effect {
-  background: rgba(16, 16, 17, 0.7);
+  background: rgba(21, 21, 23, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 /* Glow on Hover for CTAs */
 .glow-on-hover:hover {
-  box-shadow: 0 0 20px rgba(255, 42, 42, 0.35);
+  box-shadow: 0 0 20px rgba(255, 69, 58, 0.35);
   transform: translateY(-1px);
 }
 
-/* Custom rounded card styling to override */
+/* Custom rounded card styling */
 .bento-card {
   border-radius: 20px;
-  background-color: rgba(16, 16, 17, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bento-card:hover {
-  border-color: rgba(255, 42, 42, 0.15);
-  background-color: rgba(22, 22, 24, 0.8);
+  border-color: rgba(255, 69, 58, 0.15);
+  background-color: rgba(255, 255, 255, 0.06);
 }
+
+/* === Card padrão estilo macOS === */
+.mac-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: var(--inner-highlight), 0 8px 30px rgba(0,0,0,0.25);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.mac-card:hover {
+  background: rgba(255,255,255,0.055);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* === Painel com vidro translúcido (sidebar, modais) === */
+.mac-glass {
+  background: var(--vibrancy-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* === Botão primário macOS === */
+.mac-btn-primary {
+  background: linear-gradient(180deg, #FF5C50 0%, #FF453A 100%);
+  border-radius: 12px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 4px 16px rgba(255,69,58,0.35);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mac-btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 6px 20px rgba(255,69,58,0.45);
+}
+
+.mac-btn-primary:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* === Botão secundário macOS === */
+.mac-btn-secondary {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.mac-btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.14);
+}
+
+/* === Input macOS === */
+.mac-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.mac-input:focus {
+  background: rgba(255,255,255,0.06);
+  border-color: #FF453A;
+  box-shadow: 0 0 0 4px rgba(255,69,58,0.12);
+  outline: none;
+}
+
+/* === Scrollbar estilo macOS === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* === Animação de entrada suave (spring) === */
+@keyframes mac-fade-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.mac-fade-in {
+  animation: mac-fade-in 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* === Traffic lights decorativos (assinatura visual) === */
+.mac-traffic-lights {
+  display: flex;
+  gap: 6px;
+}
+.mac-traffic-lights span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: block;
+}
+.mac-traffic-lights span:nth-child(1) { background: #FF5F57; }
+.mac-traffic-lights span:nth-child(2) { background: #FEBC2E; }
+.mac-traffic-lights span:nth-child(3) { background: #28C840; }
+
 
 /* Custom login and structural animations */
 @keyframes shake {
@@ -108,4 +238,66 @@ body::after {
 .fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Rich Text Editor styling */
+.rte-content h1 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: white;
+  margin: 8px 0 4px;
+}
+
+.rte-content h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+  margin: 6px 0 4px;
+}
+
+.rte-content blockquote {
+  border-left: 2px solid #FF453A;
+  padding-left: 12px;
+  margin: 8px 0;
+  color: #a1a1aa;
+  font-style: italic;
+}
+
+.rte-content ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+.rte-content ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+.rte-content li {
+  margin: 2px 0;
+}
+
+.rte-content a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.rte-content p {
+  margin: 4px 0;
+}
+
+.rte-content:empty:before {
+  content: attr(data-placeholder);
+  color: #52525b;
+  pointer-events: none;
+}
+
+/* Sidebar container custom overrides to protect layout */
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+}
+
+
 

@@ -112,11 +112,11 @@ export function FacebookCallbackHandler() {
         <>
           <div style={{
             width: "40px", height: "40px", borderRadius: "50%",
-            background: "#FF2A2A", display: "flex",
+            background: "#FF453A", display: "flex",
             alignItems: "center", justifyContent: "center",
             fontSize: "20px", color: "white"
           }}>✗</div>
-          <p style={{ fontSize: "13px", color: "#FF2A2A", margin: 0, textAlign: "center", maxWidth: "300px" }}>
+          <p style={{ fontSize: "13px", color: "#FF453A", margin: 0, textAlign: "center", maxWidth: "300px" }}>
             {errorMsg}
           </p>
           <p style={{ fontSize: "11px", color: "#444", margin: 0 }}>

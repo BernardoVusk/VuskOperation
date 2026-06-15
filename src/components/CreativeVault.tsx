@@ -380,13 +380,13 @@ export function CreativeVault() {
     <div className="space-y-8 animate-fade-in pb-12">
       
       {/* Dynamic Intro Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-[#101011]/50 backdrop-blur-md rounded-2xl border border-white/5 select-none">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 mac-card select-none">
         <div className="space-y-1">
           <span className="text-[9px] text-primary font-bold uppercase tracking-widest block font-sans">MÓDULO COFRE DE CRIATIVOS</span>
           <h2 className="text-xl font-bold font-sans text-white tracking-tight flex items-center gap-2">
             <FolderHeart className="w-5 h-5 text-primary" /> Armazenamento Inteligente de Imagens WebP
           </h2>
-          <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+          <p className="text-xs text-ink-secondary max-w-xl leading-relaxed">
             Seus melhores criativos otimizados localmente no browser antes do upload. Menos consumo de banda, indexação instantânea do PostgreSQL do Supabase e links com CDN global de alta velocidade.
           </p>
         </div>
@@ -394,13 +394,13 @@ export function CreativeVault() {
         <div className="flex flex-wrap gap-2 items-center">
           {/* Active indicator */}
           {isSupabaseConfigured ? (
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-[#10B981] font-mono bg-[#10B981]/10 border border-[#10B981]/15 px-3 py-1 rounded-full uppercase tracking-wider font-extrabold select-none">
-              <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full shadow-[0_0_6px_#10B981]"></span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] text-systemGreen font-mono bg-systemGreen/10 border border-systemGreen/25 px-3 py-1 rounded-full uppercase tracking-wider font-extrabold select-none">
+              <span className="w-1.5 h-1.5 bg-systemGreen rounded-full shadow-[0_0_6px_rgba(48,209,88,0.5)]"></span>
               Banco Vinculado
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-amber-500 font-mono bg-amber-500/10 border border-amber-500/15 px-3 py-1 rounded-full uppercase tracking-wider font-extrabold select-none">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] text-systemYellow font-mono bg-systemYellow/10 border border-systemYellow/25 px-3 py-1 rounded-full uppercase tracking-wider font-extrabold select-none">
+              <span className="w-1.5 h-1.5 bg-systemYellow rounded-full"></span>
               Apenas Local
             </div>
           )}
@@ -412,14 +412,14 @@ export function CreativeVault() {
         
         {/* BLOCK 1: Upload, Local Optimization controls (Width: 5 Cols on large) */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[480px]">
+          <div className="mac-card p-6 relative overflow-hidden flex flex-col justify-between min-h-[480px]">
             {/* Subtle glow background */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block font-mono">Input de Importação</span>
-                <span className="text-[10px] text-zinc-400 font-mono">WebP Converter Ativo</span>
+                <span className="text-[10px] text-ink-tertiary font-bold uppercase tracking-widest block font-mono">Input de Importação</span>
+                <span className="text-[10px] text-ink-tertiary font-mono">WebP Converter Ativo</span>
               </div>
 
               {/* High-Fi Drag & Drop Uploader Component */}
@@ -427,10 +427,10 @@ export function CreativeVault() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-mac-md p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                   previewUrl 
-                    ? "border-[#10B981]/40 bg-[#10B981]/5" 
-                    : "border-white/10 hover:border-primary/40 bg-[#050506]/50 hover:bg-white/[0.01]"
+                    ? "border-systemGreen/40 bg-systemGreen/5" 
+                    : "border-hairline hover:border-primary/40 bg-surface-base hover:bg-surface-raised"
                 }`}
               >
                 <input 
@@ -446,16 +446,16 @@ export function CreativeVault() {
                     <img 
                       src={previewUrl} 
                       alt="Otimizado" 
-                      className="max-h-36 rounded-md object-contain border border-white/10 shadow-lg"
+                      className="max-h-36 rounded-mac-sm object-contain border border-hairline shadow-lg"
                     />
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-[#10B981] font-mono leading-none">
-                      <Sparkles className="w-3.5 h-3.5 text-[#10B981] animate-pulse" />
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-systemGreen font-mono leading-none">
+                      <Sparkles className="w-3.5 h-3.5 text-systemGreen animate-pulse" />
                       <span>WebP Otimizado com sucesso!</span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto text-zinc-300 border border-white/5 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-full bg-surface-raised flex items-center justify-center mx-auto text-zinc-300 border border-hairline group-hover:scale-110 transition-transform">
                       {isCompressing ? (
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
                       ) : (
@@ -464,7 +464,7 @@ export function CreativeVault() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white uppercase tracking-wider">Arraste a imagem ou clique</p>
-                      <p className="text-[10px] text-zinc-500 mt-1">Imagens originais pesadas serão convertidas localmente no seu computador</p>
+                      <p className="text-[10px] text-ink-tertiary mt-1">Imagens originais pesadas serão convertidas localmente no seu computador</p>
                     </div>
                   </div>
                 )}
@@ -472,15 +472,15 @@ export function CreativeVault() {
 
               {/* If compression succeeded, display super stats */}
               {compressionRatio !== null && previewUrl && (
-                <div className="bg-[#050506]/80 border border-white/5 p-4 rounded-xl space-y-2 select-none animate-scale-in">
-                  <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest font-mono">Eficiência no Cliente</div>
+                <div className="bg-surface-raised border border-hairline p-4 rounded-mac-md space-y-2 select-none animate-scale-in">
+                  <div className="text-[10px] text-ink-tertiary font-bold uppercase tracking-widest font-mono">Eficiência no Cliente</div>
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2 rounded bg-white/[0.015]">
-                      <div className="text-[10px] text-zinc-500 uppercase">Original</div>
-                      <div className="text-xs font-bold text-zinc-300 font-mono mt-0.5">{(origSize || 0).toFixed(1)} KB</div>
+                    <div className="p-2 rounded bg-surface-base">
+                      <div className="text-[10px] text-ink-tertiary uppercase">Original</div>
+                      <div className="text-xs font-bold text-ink-secondary font-mono mt-0.5">{(origSize || 0).toFixed(1)} KB</div>
                     </div>
-                    <div className="p-2 rounded bg-white/[0.015]">
-                      <div className="text-[10px] text-zinc-500 uppercase font-bold text-[#10B981]">WebP Final</div>
+                    <div className="p-2 rounded bg-surface-base">
+                      <div className="text-[10px] text-ink-tertiary uppercase font-bold text-systemGreen">WebP Final</div>
                       <div className="text-xs font-bold text-white font-mono mt-0.5">{(finalSize || 0).toFixed(1)} KB</div>
                     </div>
                     <div className="p-2 rounded bg-primary/10 border border-primary/15 text-primary">
@@ -493,13 +493,13 @@ export function CreativeVault() {
 
               {/* Creative Upload Meta Config Details */}
               {previewUrl && (
-                <div className="space-y-3.5 animate-fade-in pt-2">
+                <div className="space-y-3.5 animate-scale-in pt-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider pl-1">Nome do Criativo</label>
+                    <label className="text-[10px] text-ink-tertiary font-bold uppercase tracking-wider pl-1">Nome do Criativo</label>
                     <input 
                       type="text" 
                       placeholder="Ex: criativo_vsl_emagrecimento_01"
-                      className="w-full bg-[#050506] border border-white/5 focus:border-primary/50 text-xs px-4 py-2.5 rounded-full outline-none text-white transition-all h-10"
+                      className="w-full mac-input text-white text-xs px-4 py-2.5 outline-none h-10"
                       value={creativeName}
                       onChange={(e) => setCreativeName(e.target.value)}
                     />
@@ -507,9 +507,9 @@ export function CreativeVault() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider pl-1">Segmentação / Nicho</label>
+                      <label className="text-[10px] text-ink-tertiary font-bold uppercase tracking-wider pl-1">Segmentação / Nicho</label>
                       <select 
-                        className="w-full bg-[#050506] border border-white/5 focus:border-primary/50 text-xs px-3.5 py-2.5 rounded-full outline-none text-white transition-all cursor-pointer h-10"
+                        className="w-full mac-input text-white text-xs px-3.5 py-2.5 outline-none cursor-pointer h-10"
                         value={selectedNiche}
                         onChange={(e) => setSelectedNiche(e.target.value)}
                       >
@@ -530,7 +530,7 @@ export function CreativeVault() {
                       <input 
                         type="text" 
                         placeholder="Ex: vsl, facebook, 50anos"
-                        className="w-full bg-[#050506] border border-white/5 focus:border-primary/50 text-xs px-4 py-2.5 rounded-full outline-none text-white transition-all h-10"
+                        className="w-full mac-input text-white text-xs px-4 py-2.5 outline-none h-10"
                         value={tagsInput}
                         onChange={(e) => setTagsInput(e.target.value)}
                       />
@@ -542,7 +542,7 @@ export function CreativeVault() {
 
             {/* Error state wrapper */}
             {errorMessage && (
-              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/15 rounded-xl text-red-400 text-xs flex gap-2 items-start animate-pulse">
+              <div className="mt-4 p-3 bg-systemRed/10 border border-systemRed/25 rounded-xl text-systemRed text-xs flex gap-2 items-start animate-pulse">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="font-sans leading-relaxed">{errorMessage}</span>
               </div>
@@ -560,7 +560,7 @@ export function CreativeVault() {
                       setFinalSize(null);
                       setCompressionRatio(null);
                     }}
-                    className="flex-1 text-[10px] uppercase tracking-wider text-zinc-400 hover:text-white font-bold py-3.5 bg-white/5 border border-white/5 hover:border-white/10 rounded-full transition-all cursor-pointer text-center"
+                    className="flex-1 text-[10px] uppercase tracking-wider text-white font-bold py-3.5 mac-btn-secondary"
                   >
                     Descartar Imagem
                   </button>
@@ -568,7 +568,7 @@ export function CreativeVault() {
                   <button
                     onClick={triggerUpload}
                     disabled={isUploading}
-                    className="flex-[2] bg-primary hover:bg-primary-hover active:bg-[#CC1F1F] text-white font-bold py-3.5 px-6 rounded-full text-[10px] uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,42,42,0.25)] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[2] mac-btn-primary text-white font-bold py-3.5 px-6 rounded-full text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploading ? (
                       <>
@@ -582,7 +582,7 @@ export function CreativeVault() {
                   </button>
                 </div>
               ) : (
-                <div className="text-[10px] text-zinc-650 text-center leading-relaxed font-sans select-none">
+                <div className="text-[10px] text-ink-tertiary text-center leading-relaxed font-sans select-none">
                   *A imagem sofrerá conversão para WebP de formato comprimido inteligente de camada única, sem poluir seu storage.
                 </div>
               )}
@@ -598,34 +598,34 @@ export function CreativeVault() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             
             {/* Total creatives */}
-            <div className="bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-2 select-none">
+            <div className="mac-card p-4 flex items-center justify-between gap-2 select-none">
               <div>
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block font-mono">Indexados</span>
-                <span className="text-xl font-extrabold text-white font-sans mt-1 block">{creatives.length} <span className="text-xs text-zinc-500 font-medium font-sans">arquivos</span></span>
+                <span className="text-[9px] text-ink-tertiary font-bold uppercase tracking-widest block font-mono">Indexados</span>
+                <span className="text-xl font-extrabold text-white font-sans mt-1 block">{creatives.length} <span className="text-xs text-ink-tertiary font-medium font-sans">arquivos</span></span>
               </div>
-              <div className="w-9 h-9 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary">
+              <div className="w-9 h-9 bg-primary/10 border border-primary/25 rounded-mac-lg flex items-center justify-center text-primary">
                 <ImageIcon className="w-4 h-4" />
               </div>
             </div>
 
             {/* Storage economy in Megabytes */}
-            <div className="bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-2 select-none">
+            <div className="mac-card p-4 flex items-center justify-between gap-2 select-none">
               <div>
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block font-mono">Banda Salva</span>
-                <span className="text-xl font-extrabold text-[#10B981] font-sans mt-1 block">{sizeSavedMb} <span className="text-xs text-zinc-500 font-medium font-sans">MB</span></span>
+                <span className="text-[9px] text-ink-tertiary font-bold uppercase tracking-widest block font-mono">Banda Salva</span>
+                <span className="text-xl font-extrabold text-systemGreen font-sans mt-1 block">{sizeSavedMb} <span className="text-xs text-ink-tertiary font-medium font-sans">MB</span></span>
               </div>
-              <div className="w-9 h-9 bg-[#10B981]/10 border border-[#10B981]/20 rounded-full flex items-center justify-center text-[#10B981]">
+              <div className="w-9 h-9 bg-systemGreen/10 border border-systemGreen/25 rounded-mac-lg flex items-center justify-center text-systemGreen">
                 <TrendingDown className="w-4 h-4" />
               </div>
             </div>
 
             {/* Savings percent in WebP standard */}
-            <div className="bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-2xl p-4 col-span-2 sm:col-span-1 flex items-center justify-between gap-2 select-none">
+            <div className="mac-card p-4 col-span-2 sm:col-span-1 flex items-center justify-between gap-2 select-none">
               <div>
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block font-mono">Taxa Total Poupada</span>
-                <span className="text-xl font-extrabold text-white font-sans mt-1 block">~ {compressionSavingsPct}% <span className="text-[10px] text-zinc-500 font-mono font-bold tracking-widest uppercase ml-0.5">MÉDIA</span></span>
+                <span className="text-[9px] text-ink-tertiary font-bold uppercase tracking-widest block font-mono">Taxa Total Poupada</span>
+                <span className="text-xl font-extrabold text-white font-sans mt-1 block">~ {compressionSavingsPct}% <span className="text-[10px] text-ink-tertiary font-mono font-bold tracking-widest uppercase ml-0.5">MÉDIA</span></span>
               </div>
-              <div className="w-9 h-9 bg-white/5 border border-white/5 rounded-full flex items-center justify-center text-zinc-300">
+              <div className="w-9 h-9 bg-surface-raised border border-hairline rounded-mac-lg flex items-center justify-center text-ink-primary">
                 <Layers className="w-4 h-4" />
               </div>
             </div>
@@ -633,7 +633,7 @@ export function CreativeVault() {
           </div>
 
           {/* Gallery controls / Filters bar */}
-          <div className="bg-[#101011]/60 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-4 justify-between">
+          <div className="mac-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
             
             {/* Search Input */}
             <div className="relative w-full sm:max-w-xs">
@@ -642,9 +642,9 @@ export function CreativeVault() {
                 placeholder="Buscar por tag ou nome..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#050506] border border-white/5 focus:border-primary/50 text-xs pl-8 pr-4 py-2 rounded-full outline-none text-white transition-all h-9 placeholder:text-zinc-650"
+                className="w-full mac-input text-white pl-8 pr-4 py-2 rounded-full outline-none transition-all h-9 placeholder:text-ink-tertiary"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-550 absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-ink-tertiary absolute left-3 top-2.5" />
             </div>
 
             {/* Filter tags buttons row */}
@@ -653,8 +653,8 @@ export function CreativeVault() {
                 onClick={() => setSelectedNicheFilter("all")}
                 className={`px-3 py-1.5 rounded-full text-[10px] font-sans font-bold tracking-wider uppercase transition-all border cursor-pointer ${
                   selectedNicheFilter === "all" 
-                    ? "bg-white/10 border-white/15 text-white" 
-                    : "bg-transparent border-white/5 hover:border-white/10 text-zinc-400 hover:text-white"
+                    ? "mac-btn-primary text-white" 
+                    : "mac-btn-secondary text-ink-secondary hover:text-white"
                 }`}
               >
                 Todos
@@ -670,8 +670,8 @@ export function CreativeVault() {
                     onClick={() => setSelectedNicheFilter(n)}
                     className={`px-3 py-1.5 rounded-full text-[10px] font-sans font-bold tracking-wider uppercase transition-all border cursor-pointer ${
                       selectedNicheFilter === n 
-                        ? "bg-primary border-primary/10 text-white" 
-                        : "bg-transparent border-white/5 hover:border-white/10 text-zinc-400 hover:text-white"
+                        ? "mac-btn-primary text-white" 
+                        : "mac-btn-secondary text-ink-secondary hover:text-white"
                     }`}
                   >
                     {getFormatNicho(n)}
@@ -684,18 +684,18 @@ export function CreativeVault() {
 
           {/* Grid list container (Bento items) */}
           {isLoading ? (
-            <div className="h-64 border border-white/5 rounded-2xl bg-[#101011]/30 backdrop-blur-md flex flex-col items-center justify-center gap-2">
+            <div className="h-64 border border-hairline rounded-mac-lg bg-surface-base flex flex-col items-center justify-center gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              <span className="text-xs text-zinc-500 font-mono">Buscando criativos do Supabase...</span>
+              <span className="text-xs text-ink-tertiary font-mono">Buscando criativos do Supabase...</span>
             </div>
           ) : filteredCreatives.length === 0 ? (
-            <div className="h-64 border border-white/5 rounded-2xl bg-[#101011]/30 backdrop-blur-md flex flex-col items-center justify-center gap-3 text-center p-6 select-none animate-fade-in">
-              <div className="w-12 h-12 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-zinc-400">
-                <ImageIcon className="w-5 h-5 text-zinc-500" />
+            <div className="h-64 border border-hairline rounded-mac-lg bg-surface-base flex flex-col items-center justify-center gap-3 text-center p-6 select-none animate-fade-in">
+              <div className="w-12 h-12 rounded-full bg-surface-raised border border-hairline flex items-center justify-center text-ink-tertiary">
+                <ImageIcon className="w-5 h-5 text-ink-tertiary" />
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-bold text-white uppercase tracking-wider">Cofre de criativos vazio</p>
-                <p className="text-[10px] text-zinc-500 max-w-sm mx-auto">Nenhum criativo foi indexado ainda ou corresponde aos filtros atuais. Faça o upload do seu primeiro arquivo na caixa do lado.</p>
+                <p className="text-[10px] text-ink-tertiary max-w-sm mx-auto">Nenhum criativo foi indexado ainda ou corresponde aos filtros atuais. Faça o upload do seu primeiro arquivo na caixa do lado.</p>
               </div>
             </div>
           ) : (
@@ -703,11 +703,11 @@ export function CreativeVault() {
               {filteredCreatives.map((item) => (
                 <div 
                   key={item.id}
-                  className="bg-[#101011]/80 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden group hover:border-white/10 transition-all duration-300 relative select-none flex flex-col h-70 shadow-lg justify-between"
+                  className="mac-card overflow-hidden group hover:border-white/10 transition-all duration-300 relative select-none flex flex-col h-70 shadow-lg justify-between"
                 >
                   
                   {/* Image container box */}
-                  <div className="relative w-full h-40 bg-[#050506]/90 border-b border-white/5 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full h-40 bg-surface-base border-b border-hairline flex items-center justify-center overflow-hidden">
                     <img 
                       src={item.image_url} 
                       alt={item.name} 
@@ -718,13 +718,13 @@ export function CreativeVault() {
                     <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/60 to-transparent pointer-events-none"></div>
 
                     {/* Left Niches Badge */}
-                    <div className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 bg-black/85 text-white border border-white/10 px-2.5 py-1 rounded-full text-[9px] font-sans font-bold uppercase tracking-wider select-none h-6">
-                      <span className="w-1 h-1 rounded-full bg-primary shadow-[0_0_4px_#FF2A2A]"></span>
+                    <div className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 bg-surface-raised text-white border border-hairline px-2.5 py-1 rounded-mac-sm text-[9px] font-sans font-bold uppercase tracking-wider select-none h-6">
+                      <span className="w-1 h-1 rounded-full bg-primary shadow-[0_0_4px_#FF453A]"></span>
                       {getFormatNicho(item.nicho)}
                     </div>
 
                     {/* Right Size badge */}
-                    <div className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 bg-[#101011] text-zinc-400 border border-white/10 px-2 py-0.5 rounded text-[9px] font-mono select-none">
+                    <div className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 bg-surface-base text-ink-secondary border border-hairline px-2 py-0.5 rounded-mac-sm text-[9px] font-mono select-none">
                       WebP • {item.size_kb.toFixed(0)} KB
                     </div>
 
@@ -732,7 +732,7 @@ export function CreativeVault() {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                       <button
                         onClick={() => setActiveLightbox(item.image_url)}
-                        className="w-9 h-9 bg-white/5 border border-white/10 hover:border-white/30 text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
+                        className="w-9 h-9 mac-btn-secondary text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
                         title="Visualizar criativo ampliado"
                       >
                         <Eye className="w-4 h-4" />
@@ -740,11 +740,11 @@ export function CreativeVault() {
 
                       <button
                         onClick={() => copyUrlToClipboard(item.image_url, item.id)}
-                        className="w-9 h-9 bg-white/5 border border-white/10 hover:border-[#10B981]/40 text-white hover:text-[#10B981] rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
+                        className="w-9 h-9 mac-btn-secondary text-white hover:text-systemGreen rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
                         title="Copiar URL pública do creative"
                       >
                         {copiedId === item.id ? (
-                          <Check className="w-4 h-4 text-green-400" />
+                          <Check className="w-4 h-4 text-systemGreen" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
@@ -752,7 +752,7 @@ export function CreativeVault() {
 
                       <button
                         onClick={() => deleteCreative(item)}
-                        className="w-9 h-9 bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-400 rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
+                        className="w-9 h-9 bg-systemRed/10 border border-systemRed/25 text-systemRed rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
                         title="Excluir criativo permanentemente"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -774,20 +774,20 @@ export function CreativeVault() {
                           {item.tags.map((tg, i) => (
                             <span 
                               key={i}
-                              className="text-[9px] font-sans font-semibold tracking-wide text-zinc-500 bg-white/[0.015] border border-white/5 px-1.5 py-0.5 rounded cursor-pointer hover:bg-white/5 hover:text-white transition-all select-none"
+                              className="text-[9px] font-sans font-semibold tracking-wide text-ink-secondary bg-surface-raised border border-hairline px-1.5 py-0.5 rounded-mac-sm cursor-pointer hover:bg-white/5 hover:text-white transition-all select-none"
                             >
                               #{tg}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-[9px] text-zinc-600 mt-2 font-sans italic select-none">
+                        <div className="text-[9px] text-ink-tertiary mt-2 font-sans italic select-none">
                           Sem tags inseridas
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500 mt-3 pt-2.5 border-t border-white/5 select-none h-6">
+                    <div className="flex items-center justify-between text-[10px] text-ink-secondary mt-3 pt-2.5 border-t border-hairline select-none h-6">
                       <span className="font-mono">
                         {new Date(item.created_at).toLocaleDateString("pt-BR", {
                           day: "2-digit",
@@ -797,7 +797,7 @@ export function CreativeVault() {
                       </span>
 
                       {item.original_size_kb && (
-                        <span className="text-[9px] font-mono text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.5 rounded font-bold">
+                        <span className="text-[9px] font-mono text-systemGreen bg-systemGreen/10 border border-systemGreen/25 rounded-mac-sm px-1.5 py-0.5 font-bold">
                           Poupança de {(100 - (item.size_kb / item.original_size_kb) * 100).toFixed(0)}%
                         </span>
                       )}
@@ -815,7 +815,7 @@ export function CreativeVault() {
 
       {/* Full screen Lightbox preview modal for creatives zoom (Spatial aesthetic) */}
       {activeLightbox && (
-        <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4 animate-fade-in font-sans">
+        <div className="fixed inset-0 mac-glass z-[60] flex items-center justify-center p-4 animate-fade-in font-sans">
           
           {/* Close trigger overlay click */}
           <div className="absolute inset-0 cursor-zoom-out" onClick={() => setActiveLightbox(null)}></div>
@@ -825,7 +825,7 @@ export function CreativeVault() {
             <img 
               src={activeLightbox} 
               alt="Creative zoom" 
-              className="max-h-[85vh] max-w-full rounded-xl border border-white/10 shadow-2xl z-10 animate-scale-in object-contain select-none"
+              className="max-h-[85vh] max-w-full rounded-mac-md border border-hairline shadow-2xl z-10 animate-scale-in object-contain select-none"
             />
 
             {/* Quick action controls at the zoom bottom floating */}
@@ -835,14 +835,14 @@ export function CreativeVault() {
                   navigator.clipboard.writeText(activeLightbox);
                   alert("URL pública copiada para a área de transferência!");
                 }}
-                className="text-[10px] text-zinc-400 hover:text-white font-extrabold uppercase tracking-widest px-4 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-full transition-all cursor-pointer flex items-center gap-1.5"
+                className="text-[10px] text-white font-extrabold uppercase tracking-widest px-4 py-2 mac-btn-secondary flex items-center gap-1.5"
               >
                 <Copy className="w-3 h-3" /> Copiar Link
               </button>
 
               <button
                 onClick={() => setActiveLightbox(null)}
-                className="text-[10px] text-zinc-400 hover:text-white font-extrabold uppercase tracking-widest px-4 py-2 bg-primary hover:bg-primary-hover border border-primary/20 text-white rounded-full transition-all cursor-pointer h-8"
+                className="text-[10px] text-white font-extrabold uppercase tracking-widest px-4 py-2 mac-btn-primary rounded-full transition-all cursor-pointer h-8"
               >
                 Voltar ao Cofre
               </button>

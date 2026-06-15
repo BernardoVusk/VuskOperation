@@ -510,7 +510,7 @@ export function AIAgentsPanel() {
             <Bot className="w-5 h-5 text-primary" />
             Personas Customizadas
           </h2>
-          <p className="text-xs text-zinc-400 font-medium max-w-2xl leading-relaxed">
+          <p className="text-xs text-ink-secondary font-medium max-w-2xl leading-relaxed">
             Consulte inteligências artificiais com identidades exclusivas injetadas por meio de arquivos <span className="text-primary font-bold">.md</span>. Crie ganchos, revise copys e otimize funis usando especialistas focados sob demanda.
           </p>
         </div>
@@ -518,7 +518,7 @@ export function AIAgentsPanel() {
         {/* Create new agent button trigger */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold tracking-wide transition-all shadow-[0_0_15px_rgba(255,42,42,0.3)] hover:shadow-[0_0_20px_rgba(255,42,42,0.5)] active:scale-95 cursor-pointer h-11 self-start md:self-auto shrink-0 select-none"
+          className="flex items-center gap-2 px-5 py-3 mac-btn-primary text-white text-xs font-bold tracking-wide transition-all cursor-pointer h-11 self-start md:self-auto shrink-0 select-none"
         >
           <Plus className="w-4 h-4" />
           <span>Criar Novo Agente</span>
@@ -527,40 +527,40 @@ export function AIAgentsPanel() {
 
       {/* SQL Script assistant helper prompt if on localMode */}
       {localMode === "local" && (
-        <div className="bg-[#1c1c24]/80 border border-amber-500/10 rounded-2xl p-4.5 space-y-3.5 select-none text-left">
+        <div className="bg-systemYellow/10 border border-systemYellow/25 rounded-mac-lg p-5 space-y-3.5 select-none text-left">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0 border border-amber-500/10">
+            <div className="w-8 h-8 rounded-mac-sm bg-systemYellow/10 flex items-center justify-center text-systemYellow shrink-0 border border-systemYellow/25">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-amber-200">
+              <h4 className="text-xs font-bold text-systemYellow">
                 Modo local ativado para Personas IA
               </h4>
-              <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5 max-w-xl">
+              <p className="text-[11px] text-ink-secondary leading-relaxed mt-0.5 max-w-xl">
                 O Supabase não está vinculado ou as tabelas <code className="text-white bg-white/5 px-1 py-0.5 rounded text-[9px] font-mono">agents</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded text-[9px] font-mono">chat_sessions</code> e <code className="text-white bg-white/5 px-1 py-0.5 rounded text-[9px] font-mono">chat_messages</code> não foram criadas no seu banco de dados. Os agentes e conversas estão salvos de forma segura em LocalStorage.
               </p>
             </div>
             <button
               onClick={() => setIsSqlVisible(!isSqlVisible)}
-              className="text-[10px] text-amber-500 hover:text-amber-400 font-mono font-extrabold uppercase tracking-wider px-3 py-1.5 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ml-auto shrink-0"
+              className="text-[10px] text-systemYellow hover:text-white font-mono font-extrabold uppercase tracking-wider px-3 py-1.5 bg-systemYellow/10 hover:bg-systemYellow/20 border border-systemYellow/25 rounded-mac-sm flex items-center gap-1.5 transition-all cursor-pointer ml-auto shrink-0"
             >
               {isSqlVisible ? "Ocultar" : "Mostrar SQL"}
             </button>
           </div>
 
           {isSqlVisible && (
-            <div className="pt-2 space-y-3 animate-slide-up border-t border-amber-500/10">
+            <div className="pt-2 space-y-3 animate-slide-up border-t border-systemYellow/20">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-mono text-amber-400 uppercase font-bold">
+                <span className="text-[9px] font-mono text-systemYellow uppercase font-bold">
                   COPIE E COLE NO SQL EDITOR DO SUPABASE PARA ATIVAR O MODO NUVEM
                 </span>
                 <button
                   onClick={copySqlToClipboard}
-                  className="text-[10px] text-zinc-300 hover:text-white font-mono font-bold uppercase tracking-wider px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="text-[10px] text-white font-mono font-bold uppercase tracking-wider px-3 py-1.5 mac-btn-secondary flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {isSqlCopied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" /> Copiado!
+                      <Check className="w-3.5 h-3.5 text-systemGreen" /> Copiado!
                     </>
                   ) : (
                     <>
@@ -569,7 +569,7 @@ export function AIAgentsPanel() {
                   )}
                 </button>
               </div>
-              <div className="bg-black/40 border border-white/5 p-4 rounded-xl text-[10px] font-mono leading-relaxed text-zinc-400 overflow-x-auto max-h-52 scrollbar-thin">
+              <div className="bg-surface-base border border-hairline p-4 rounded-mac-lg text-[10px] font-mono leading-relaxed text-ink-secondary overflow-x-auto max-h-52 scrollbar-thin">
                 <pre>{SUPABASE_AGENT_SCHEMA_SQL}</pre>
               </div>
             </div>
@@ -581,14 +581,14 @@ export function AIAgentsPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column (list of agents selection - 4 cols wide) */}
         <div className="lg:col-span-4 space-y-3">
-          <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block font-mono select-none px-1">
+          <span className="text-[9px] text-ink-tertiary font-bold uppercase tracking-widest block font-mono select-none px-1">
             Agentes Disponíveis ({agents.length})
           </span>
 
           {loadingAgents ? (
-            <div className="p-12 border border-white/5 rounded-2xl bg-[#0c0c0e]/30 flex flex-col items-center justify-center text-center gap-2">
+            <div className="p-12 border border-hairline rounded-mac-lg bg-surface-base flex flex-col items-center justify-center text-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-[10px] text-zinc-500 font-mono tracking-wider font-semibold uppercase">
+              <span className="text-[10px] text-ink-tertiary font-mono tracking-wider font-semibold uppercase">
                 Sincronizando mentes...
               </span>
             </div>
@@ -600,10 +600,10 @@ export function AIAgentsPanel() {
                   <button
                     key={ag.id}
                     onClick={() => handleSelectAgent(ag)}
-                    className={`w-full p-4 rounded-2xl text-left border flex items-start gap-3.5 transition-all cursor-pointer select-none relative overflow-hidden group ${
+                    className={`w-full p-4 rounded-mac-lg text-left border flex items-start gap-3.5 transition-all cursor-pointer select-none relative overflow-hidden group ${
                       isSelected
-                        ? "bg-gradient-to-r from-primary/10 to-transparent border-primary/20 shadow-[0_0_15px_rgba(255,42,42,0.06)]"
-                        : "bg-zinc-950/40 hover:bg-[#101012]/60 border-white/5 hover:border-white/10"
+                        ? "bg-primary/5 border-primary/35 shadow-[0_0_15px_rgba(255,42,42,0.06)]"
+                        : "mac-card border-hairline hover:bg-surface-raised"
                     }`}
                   >
                     {/* Visual left selector glow highlight */}
@@ -612,10 +612,10 @@ export function AIAgentsPanel() {
                     )}
 
                     {/* Agent avatar emoji or thumbnail */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm shrink-0 border transition-all ${
+                    <div className={`w-10 h-10 rounded-mac-md flex items-center justify-center text-lg shadow-sm shrink-0 border transition-all ${
                       isSelected 
                         ? "bg-primary/20 border-primary text-white" 
-                        : "bg-zinc-900 border-white/5 text-zinc-400 group-hover:text-zinc-200"
+                        : "bg-surface-raised border-hairline text-ink-secondary group-hover:text-white"
                     }`}>
                       {ag.avatar_url || "🤖"}
                     </div>
@@ -625,12 +625,12 @@ export function AIAgentsPanel() {
                       <h4 className="text-xs font-bold text-white tracking-wide truncate">
                         {ag.name}
                       </h4>
-                      <p className="text-[10px] text-zinc-400 leading-relaxed font-semibold line-clamp-2">
+                      <p className="text-[10px] text-ink-secondary leading-relaxed font-semibold line-clamp-2">
                         {ag.description}
                       </p>
                     </div>
 
-                    <ArrowRight className={`w-4 h-4 shrink-0 transition-all self-center text-zinc-600 ${
+                    <ArrowRight className={`w-4 h-4 shrink-0 transition-all self-center text-ink-tertiary ${
                       isSelected ? "text-primary translate-x-0.5 opacity-100" : "opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5"
                     }`} />
                   </button>
@@ -653,11 +653,11 @@ export function AIAgentsPanel() {
               sending={sendingMessage}
             />
           ) : (
-            <div className="h-[450px] border border-dashed border-white/5 rounded-3xl bg-[#0c0c0e]/20 flex flex-col items-center justify-center p-6 text-center text-zinc-500 space-y-3.5 select-none">
-              <Bot className="w-12 h-12 text-zinc-700 animate-pulse" />
+            <div className="h-[450px] border border-dashed border-hairline rounded-mac-lg bg-surface-base flex flex-col items-center justify-center p-6 text-center text-ink-tertiary space-y-3.5 select-none">
+              <Bot className="w-12 h-12 text-ink-tertiary animate-pulse" />
               <div>
                 <p className="text-xs font-bold text-white uppercase tracking-wider">Selecione uma Mente de IA</p>
-                <p className="text-[11px] text-zinc-500 leading-relaxed max-w-xs mx-auto mt-0.5">
+                <p className="text-[11px] text-ink-secondary leading-relaxed max-w-xs mx-auto mt-0.5">
                   Navegue pela coluna à esquerda para abrir a janela de diálogo com um dos nossos agentes especializados.
                 </p>
               </div>

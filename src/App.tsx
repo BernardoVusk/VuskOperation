@@ -279,15 +279,15 @@ export default function App() {
 
   return (
     <OperatorContext.Provider value={currentOperator || "Bernardo"}>
-      <div className={`min-h-screen bg-[#060607] text-white flex flex-col md:flex-row font-sans selection:bg-primary/30 selection:text-white relative overflow-x-hidden transition-opacity duration-500 ${showApp ? "opacity-100" : "opacity-0"}`}>
+      <div className={`min-h-screen bg-[#151517] text-white flex flex-col md:flex-row font-sans selection:bg-primary/30 selection:text-white relative overflow-x-hidden transition-opacity duration-500 ${showApp ? "opacity-100" : "opacity-0"}`}>
       {/* Background Dots */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none z-0"></div>
 
       {/* Sidebar para telas médias e maiores (Desktop/Tablet) */}
-      <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-[#0B0B0C]/90 backdrop-blur-md border-r border-white/5 z-45 select-none overflow-y-auto">
+      <aside className="sidebar-container hidden md:flex flex-col w-64 fixed inset-y-0 left-0 mac-glass border-r border-white/[0.08] z-45 select-none overflow-y-auto">
         {/* Banner de cabeçalho no sidebar */}
         <div 
-          className="p-6 border-b border-white/5 relative overflow-hidden bg-cover bg-center h-28 flex flex-col justify-end"
+          className="px-6 pt-8 pb-6 border-b border-white/[0.08] relative overflow-hidden bg-cover bg-center h-32 flex flex-col justify-end"
           style={{ backgroundImage: `linear-gradient(to bottom, rgba(11, 11, 12, 0.3), rgba(11, 11, 12, 0.95)), url(${bgHeaderImage})` }}
         >
           {/* Subtle neon glowing accent strip under header in sidebar */}
@@ -295,7 +295,7 @@ export default function App() {
           
           <div className="flex items-center gap-2 z-10">
             {/* Custom Neon Glow Brand Indicator */}
-            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center relative shadow-[0_0_12px_rgba(255,42,42,0.6)]">
+            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center relative shadow-[0_0_12px_rgba(255,69,58,0.6)] shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
             </div>
             <div>
@@ -309,24 +309,23 @@ export default function App() {
             </div>
           </div>
         </div>
-
-        {/* Links verticais do menu no sidebar */}
+            {/* Links verticais do menu no sidebar */}
         <nav className="flex-1 p-5 space-y-3 pt-6">
           {/* Grupo 1 */}
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 font-mono px-3 block mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-650 font-mono px-3 block mb-1">
               Mineração
             </span>
             <button
               onClick={() => setActiveTab("mining")}
               id="tab-mining"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
                 activeTab === "mining"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
-              <Cpu className="w-4 h-4 shrink-0 text-primary" />
+              <Cpu className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
               <span>Varredura Ativa</span>
             </button>
           </div>
@@ -335,32 +334,32 @@ export default function App() {
 
           {/* Grupo 2 */}
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 font-mono px-3 block mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-650 font-mono px-3 block mb-1">
               Tráfego Pago
             </span>
             <button
               onClick={() => setActiveTab("vault")}
               id="tab-vault"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
                 activeTab === "vault"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
-              <FolderHeart className="w-4 h-4 shrink-0 text-primary" />
+              <FolderHeart className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
               <span>Cofre Criativos</span>
             </button>
 
             <button
               onClick={() => setActiveTab("radar")}
               id="tab-radar"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
                 activeTab === "radar"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
-              <Radio className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+              <Radio className="w-4 h-4 shrink-0 text-primary animate-pulse transition-colors duration-200" />
               <span>Radar Meta Ads</span>
             </button>
           </div>
@@ -369,36 +368,36 @@ export default function App() {
 
           {/* Grupo 3 */}
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 font-mono px-3 block mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-650 font-mono px-3 block mb-1">
               IA
             </span>
             <button
               onClick={() => setActiveTab("agents")}
               id="tab-agents"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
                 activeTab === "agents"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
-              <Bot className="w-4 h-4 shrink-0 text-primary" />
+              <Bot className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
               <span>Agentes IA</span>
             </button>
 
             <button
               onClick={() => setActiveTab("audience")}
               id="tab-audience"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center justify-between cursor-pointer select-none border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center justify-between cursor-pointer select-none border ${
                 activeTab === "audience"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 shrink-0 text-primary" />
+                <Users className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
                 <span>Público-Alvo</span>
               </div>
-              <span className="px-1.5 py-0.5 rounded bg-[#FF2A2A] text-[8px] font-bold text-white uppercase font-mono tracking-wider select-none shrink-0 transform scale-90">
+              <span className="px-1.5 py-0.5 rounded bg-primary text-[8px] font-bold text-white uppercase font-mono tracking-wider select-none shrink-0 transform scale-90">
                 IA
               </span>
             </button>
@@ -406,14 +405,14 @@ export default function App() {
             <button
               onClick={() => setActiveTab("funnel")}
               id="tab-funnel"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center justify-between cursor-pointer select-none border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center justify-between cursor-pointer select-none border ${
                 activeTab === "funnel"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Layers className="w-4 h-4 shrink-0 text-primary" />
+                <Layers className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
                 <span>Criador de Funil</span>
               </div>
               <span className="px-1.5 py-0.5 rounded bg-primary text-[8px] font-bold text-white uppercase font-mono tracking-wider select-none shrink-0 transform scale-90">
@@ -424,14 +423,14 @@ export default function App() {
             <button
               onClick={() => setActiveTab("angles")}
               id="tab-angles"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center justify-between cursor-pointer select-none border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center justify-between cursor-pointer select-none border ${
                 activeTab === "angles"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Zap className="w-4 h-4 shrink-0 text-primary" />
+                <Zap className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
                 <span>Ângulos de Copy</span>
               </div>
               <span className="px-1.5 py-0.5 rounded bg-primary text-[8px] font-bold text-white uppercase font-mono tracking-wider select-none shrink-0 transform scale-90">
@@ -444,19 +443,19 @@ export default function App() {
 
           {/* Grupo 4 */}
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 font-mono px-3 block mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-650 font-mono px-3 block mb-1">
               Playbooks
             </span>
             <button
               onClick={() => setActiveTab("playbooks")}
               id="tab-playbooks"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
                 activeTab === "playbooks"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
-              <BookOpen className="w-4 h-4 shrink-0 text-primary" />
+              <BookOpen className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
               <span>Playbooks</span>
             </button>
           </div>
@@ -465,16 +464,16 @@ export default function App() {
 
           {/* GRUPO INTEGRAÇÕES */}
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 font-mono px-3 block mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-650 font-mono px-3 block mb-1">
               Integrações
             </span>
             <button
               onClick={() => setActiveTab("integrations")}
               id="tab-integrations"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center justify-between cursor-pointer select-none border ${
+              className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center justify-between cursor-pointer select-none border ${
                 activeTab === "integrations"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                  : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -493,19 +492,19 @@ export default function App() {
           <button
             onClick={() => setActiveTab("help")}
             id="tab-help"
-            className={`w-full px-4 py-3 rounded-xl text-xs font-sans font-semibold tracking-wide transition-all duration-300 flex items-center gap-3 cursor-pointer select-none text-left border ${
+            className={`w-full px-4 py-3 rounded-mac-md text-xs font-sans font-semibold tracking-wide transition-all duration-200 flex items-center gap-3 cursor-pointer select-none text-left border ${
               activeTab === "help"
-                ? "bg-primary border-primary/20 text-white shadow-[0_0_15px_rgba(255,42,42,0.4)] font-bold"
-                : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.03] hover:border-white/5"
+                ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)] font-bold"
+                : "text-zinc-400 border-transparent hover:text-white hover:bg-white/[0.05] hover:border-white/5"
             }`}
           >
-            <BookOpen className="w-4 h-4 shrink-0 text-primary" />
+            <BookOpen className="w-4 h-4 shrink-0 text-primary transition-colors duration-200" />
             <span>Guia Prático</span>
           </button>
         </nav>
 
         {/* Footer info/Database configuration in Sidebar */}
-        <div className="p-4 border-t border-white/5 space-y-3 bg-[#080809]/40 select-none">
+        <div className="p-4 border-t border-white/[0.08] space-y-3 bg-white/[0.01] select-none">
           <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block px-1 font-mono">
             Status da Infra
           </span>
@@ -514,7 +513,7 @@ export default function App() {
             onClick={() => setIsSupabaseOpen(true)}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-[10px] font-sans font-bold tracking-wider transition-all uppercase cursor-pointer ${
               isSupabaseConfigured 
-                ? "bg-[#10B981]/10 border-[#10B981]/15 text-[#10B981] hover:bg-[#10B981]/15 shadow-[0_0_8px_rgba(16,185,129,0.1)]" 
+                ? "bg-[#30D158]/10 border-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/15 shadow-[0_0_8px_rgba(48,209,88,0.1)]" 
                 : "bg-amber-500/10 border-amber-500/15 text-amber-500 hover:bg-amber-500/15"
             }`}
           >
@@ -527,9 +526,9 @@ export default function App() {
             </span>
           </button>
 
-          <div className="flex items-center justify-between px-3 py-2 bg-white/5 border border-white/5 rounded-xl select-none">
+          <div className="flex items-center justify-between px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl select-none">
             <span className="text-[10px] text-zinc-400 font-sans tracking-wide">STATUS ONLINE</span>
-            <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#30D158] shadow-[0_0_8px_#30D158]"></span>
           </div>
 
           <button
@@ -542,10 +541,10 @@ export default function App() {
       </aside>
 
       {/* Top Navbar para telas móveis (Smartphone/Tablet menores que 768px) */}
-      <header className="md:hidden flex h-16 w-full items-center justify-between px-4 sticky top-0 z-50 bg-[#0B0B0C]/90 backdrop-blur-md border-b border-white/5 select-none animate-fade-in pr-2">
+      <header className="md:hidden flex h-16 w-full items-center justify-between px-4 sticky top-0 z-50 mac-glass border-b border-white/[0.08] select-none animate-fade-in pr-2">
         <div className="flex items-center gap-2">
           {/* Brand logotype */}
-          <div className="w-4.5 h-4.5 rounded-full bg-primary flex items-center justify-center relative shadow-[0_0_10px_rgba(255,42,42,0.6)]">
+          <div className="w-4.5 h-4.5 rounded-full bg-primary flex items-center justify-center relative shadow-[0_0_10px_rgba(255,69,58,0.6)] shrink-0">
             <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
           </div>
           <span className="font-sans font-black text-xs uppercase tracking-wider text-white">
@@ -559,7 +558,7 @@ export default function App() {
             onClick={() => setIsSupabaseOpen(true)}
             className={`flex items-center justify-center w-11 h-11 rounded-full border text-[9px] font-sans font-bold transition-all cursor-pointer ${
               isSupabaseConfigured 
-                ? "bg-[#10B981]/10 border-[#10B981]/25 text-[#10B981]" 
+                ? "bg-[#30D158]/10 border-[#30D158]/25 text-[#30D158]" 
                 : "bg-amber-500/10 border-amber-500/20 text-amber-500"
             }`}
             title={isSupabaseConfigured ? "Supabase Vinculado" : "Conectar Supabase"}
@@ -580,7 +579,7 @@ export default function App() {
 
       {/* Slide-out Mobile Menu Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-[#0A0A0B]/98 backdrop-blur-lg flex flex-col justify-between pt-24 p-6 animate-fade-in select-none">
+        <div className="md:hidden fixed inset-0 z-40 mac-glass border-r border-white/[0.08] flex flex-col justify-between pt-24 p-6 animate-fade-in select-none">
           <nav className="space-y-3 pt-4 overflow-y-auto max-h-[65vh] pr-1">
             {[
               {
@@ -614,7 +613,7 @@ export default function App() {
             ].map((group, gIdx) => (
               <div key={group.title} className="space-y-2">
                 {gIdx > 0 && <div className="h-px bg-white/[0.04] my-2" />}
-                <span className="text-[9px] text-zinc-600 font-mono uppercase tracking-widest px-2 mb-2 block font-bold">
+                <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-widest px-2 mb-2 block font-bold">
                   {group.title}
                 </span>
                 <div className="space-y-2">
@@ -628,10 +627,10 @@ export default function App() {
                           setActiveTab(tab.id as any);
                           setIsMobileMenuOpen(false);
                         }}
-                        className={`w-full px-5 py-4 rounded-2xl text-xs font-sans font-bold tracking-wide transition-all duration-300 flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+                        className={`w-full px-5 py-4 rounded-mac-md text-xs font-sans font-bold tracking-wide transition-all duration-300 flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
                           isSelected
-                            ? "bg-primary border-primary/20 text-white shadow-[0_0_20px_rgba(255,42,42,0.45)]"
-                            : "text-zinc-400 hover:text-white bg-white/5 border-transparent"
+                            ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)]"
+                            : "text-zinc-400 hover:text-white bg-white/[0.03] border-transparent"
                         }`}
                       >
                         <div className="flex items-center gap-4">
@@ -657,10 +656,10 @@ export default function App() {
                 setActiveTab("help");
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full px-5 py-4 rounded-2xl text-xs font-sans font-bold tracking-wide transition-all duration-300 flex items-center gap-4 text-left border cursor-pointer active:scale-[0.98] ${
+              className={`w-full px-5 py-4 rounded-mac-md text-xs font-sans font-bold tracking-wide transition-all duration-300 flex items-center gap-4 text-left border cursor-pointer active:scale-[0.98] ${
                 activeTab === "help"
-                  ? "bg-primary border-primary/20 text-white shadow-[0_0_20px_rgba(255,42,42,0.45)]"
-                  : "text-zinc-400 hover:text-white bg-white/5 border-transparent"
+                  ? "bg-primary/15 border-primary/25 text-white shadow-[0_0_20px_rgba(255,69,58,0.15)]"
+                  : "text-zinc-400 hover:text-white bg-white/[0.03] border-transparent"
               }`}
             >
               <BookOpen className="w-4.5 h-4.5 shrink-0 text-primary" />
@@ -669,14 +668,14 @@ export default function App() {
           </nav>
 
           <div className="space-y-4 pb-8">
-            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
+            <div className="p-4 bg-white/[0.01] border border-white/[0.08] rounded-2xl space-y-3">
               <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block font-mono">
                 Status de Rede
               </span>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-400">Canal de Varredura</span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#10B981]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#30D158]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] animate-pulse"></span>
                   ONLINE
                 </span>
               </div>
@@ -689,7 +688,7 @@ export default function App() {
               }}
               className={`w-full flex items-center justify-center gap-2.5 px-5 py-4 rounded-full border text-[11px] font-sans font-bold tracking-widest transition-all uppercase cursor-pointer ${
                 isSupabaseConfigured 
-                  ? "bg-[#10B981]/10 border-[#10B981]/25 text-[#10B981]" 
+                  ? "bg-[#30D158]/10 border-[#30D158]/25 text-[#30D158]" 
                   : "bg-amber-500/10 border-amber-500/20 text-amber-500"
               }`}
             >
@@ -702,7 +701,7 @@ export default function App() {
                 logout();
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-full border border-red-500/20 text-[11px] font-sans font-bold tracking-widest text-[#FF2A2A] hover:bg-red-500/10 transition-all uppercase cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-full border border-red-500/20 text-[11px] font-sans font-bold tracking-widest text-[#FF453A] hover:bg-red-500/10 transition-all uppercase cursor-pointer"
             >
               Sair do Perfil ({currentOperator})
             </button>

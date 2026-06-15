@@ -213,60 +213,59 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
       setIsReanalyzing(false);
     }
   };
-
   return (
     <div className="space-y-8 animate-fade-in relative z-10 text-white font-sans">
       {/* 1. Stat cards top Bento Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Total Results */}
-        <div className="bento-card rounded-2xl p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-primary/20 transition-all duration-300">
-          <div className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Total Mapeado</div>
+        <div className="mac-card p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group">
+          <div className="text-[10px] text-ink-tertiary font-bold tracking-widest uppercase">Total Mapeado</div>
           <div className="text-3xl font-extrabold text-white font-sans mt-2 tracking-tight group-hover:text-primary transition-colors">{countStats.total}</div>
-          <div className="text-[10px] text-zinc-400 font-medium mt-1">Ofertas em cache</div>
+          <div className="text-[10px] text-ink-secondary font-medium mt-1">Ofertas em cache</div>
         </div>
 
         {/* Elite */}
-        <div className="bento-card rounded-2xl p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-primary/20 transition-all duration-300">
+        <div className="mac-card p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group">
           <div className="text-[10px] text-primary font-bold tracking-widest uppercase flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#FF2A2A]"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#FF453A]"></span>
             Classe S · Elite
           </div>
           <div className="text-3xl font-extrabold text-white font-sans mt-2 tracking-tight">{countStats.elite}</div>
-          <div className="text-[10px] text-zinc-400 font-medium mt-1">Alta conversão (≥ 12)</div>
+          <div className="text-[10px] text-ink-secondary font-medium mt-1">Alta conversão (≥ 12)</div>
         </div>
 
         {/* Topo */}
-        <div className="bento-card rounded-2xl p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-sky-500/20 transition-all duration-300">
-          <div className="text-[10px] text-sky-400 font-bold tracking-widest uppercase flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38BDF8]"></span>
+        <div className="mac-card p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-systemBlue/30 transition-all duration-250">
+          <div className="text-[10px] text-systemBlue font-bold tracking-widest uppercase flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-systemBlue shadow-[0_0_6px_rgba(10,132,255,0.5)]"></span>
             Classe A · Escala
           </div>
           <div className="text-3xl font-extrabold text-white font-sans mt-2 tracking-tight">{countStats.topo}</div>
-          <div className="text-[10px] text-zinc-400 font-medium mt-1">Propostas validadas (8-11)</div>
+          <div className="text-[10px] text-ink-secondary font-medium mt-1">Propostas validadas (8-11)</div>
         </div>
 
         {/* Alta */}
-        <div className="bento-card rounded-2xl p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/20 transition-all duration-300">
-          <div className="text-[10px] text-amber-500 font-bold tracking-widest uppercase flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_#F59E0B]"></span>
+        <div className="mac-card p-5 sm:p-6 min-h-24 flex flex-col justify-between relative overflow-hidden group hover:border-systemYellow/30 transition-all duration-250">
+          <div className="text-[10px] text-systemYellow font-bold tracking-widest uppercase flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-systemYellow shadow-[0_0_6px_rgba(255,214,10,0.5)]"></span>
             Classe B/C · Ativo
           </div>
           <div className="text-3xl font-extrabold text-white font-sans mt-2 tracking-tight">{countStats.alta}</div>
-          <div className="text-[10px] text-zinc-400 font-medium mt-1">Em tração inicial (4-7)</div>
+          <div className="text-[10px] text-ink-secondary font-medium mt-1">Em tração inicial (4-7)</div>
         </div>
       </div>
 
       {/* 2. Controls and Filters row */}
-      <div className="bento-card rounded-2xl p-6 space-y-4">
+      <div className="mac-card p-6 space-y-4">
         <div className="flex flex-col xl:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-3.5 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-4 top-3.5 w-4 h-4 text-ink-tertiary" />
             <input
               type="text"
               placeholder="Pesquisar por link de checkout, palavra correspondente ou plataforma..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111112] text-white pl-11 pr-4 py-3 rounded-full border border-white/5 focus:border-[#FF2A2A]/40 outline-none text-xs transition-all h-11 placeholder:text-zinc-650"
+              className="w-full mac-input text-white pl-11 pr-4 py-3 outline-none text-xs transition-all h-11 placeholder:text-ink-tertiary"
             />
           </div>
 
@@ -275,102 +274,102 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
               title="Filtro de nicho"
               value={selectedNiche}
               onChange={(e) => setSelectedNiche(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112] text-white" value="all">Todos os nichos</option>
-              <option className="bg-[#111112] text-white" value="emagrecimento">Emagrecimento</option>
-              <option className="bg-[#111112] text-white" value="saude_masculina">Saúde Masculina</option>
-              <option className="bg-[#111112] text-white" value="saude_bem_estar">Saúde/Bem-Estar</option>
-              <option className="bg-[#111112] text-white" value="renda_extra">Renda Extra</option>
-              <option className="bg-[#111112] text-white" value="relacionamento">Relacionamento</option>
-              <option className="bg-[#111112] text-white" value="financas">Finanças</option>
-              <option className="bg-[#111112] text-white" value="cripto">Criptomoedas</option>
-              <option className="bg-[#111112] text-white" value="beleza">Beleza / Estética</option>
-              <option className="bg-[#111112] text-white" value="outros">Outros Nichos</option>
+              <option value="all">Todos os nichos</option>
+              <option value="emagrecimento">Emagrecimento</option>
+              <option value="saude_masculina">Saúde Masculina</option>
+              <option value="saude_bem_estar">Saúde/Bem-Estar</option>
+              <option value="renda_extra">Renda Extra</option>
+              <option value="relacionamento">Relacionamento</option>
+              <option value="financas">Finanças</option>
+              <option value="cripto">Criptomoedas</option>
+              <option value="beleza">Beleza / Estética</option>
+              <option value="outros">Outros Nichos</option>
             </select>
 
             <select
               title="Filtro de região"
               value={selectedMarket}
               onChange={(e) => setSelectedMarket(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112] text-white" value="all">BR + Gringa</option>
-              <option className="bg-[#111112]" value="BR">Nacional (BR)</option>
-              <option className="bg-[#111112]" value="Gringa">Gringa (Internac.)</option>
+              <option value="all">BR + Gringa</option>
+              <option value="BR">Nacional (BR)</option>
+              <option value="Gringa">Gringa (Internac.)</option>
             </select>
 
             <select
               title="Filtro de rank"
               value={selectedRank}
               onChange={(e) => setSelectedRank(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112]" value="all">Todas prioridades</option>
-              <option className="bg-[#111112]" value="S">Classe [S] Elite</option>
-              <option className="bg-[#111112]" value="A">Classe [A] Topo</option>
-              <option className="bg-[#111112]" value="B">Classe [B] Alta</option>
-              <option className="bg-[#111112]" value="C">Classe [C] Baixa</option>
+              <option value="all">Todas prioridades</option>
+              <option value="S">Classe [S] Elite</option>
+              <option value="A">Classe [A] Topo</option>
+              <option value="B">Classe [B] Alta</option>
+              <option value="C">Classe [C] Baixa</option>
             </select>
 
             <select
               title="Filtro de funil"
               value={selectedFunnel}
               onChange={(e) => setSelectedFunnel(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112]" value="all">Todos os funis</option>
-              <option className="bg-[#111112]" value="VSL">VSL (Vídeo Vendas)</option>
-              <option className="bg-[#111112]" value="QUIZ">Quiz / Pesquisa</option>
-              <option className="bg-[#111112]" value="LOW_TICKET">Low Ticket / Ebook</option>
-              <option className="bg-[#111112]" value="DIRECT_SALES">Venda Direta / LP</option>
+              <option value="all font-sans">Todos os funis</option>
+              <option value="VSL">VSL (Vídeo Vendas)</option>
+              <option value="QUIZ">Quiz / Pesquisa</option>
+              <option value="LOW_TICKET">Low Ticket / Ebook</option>
+              <option value="DIRECT_SALES">Venda Direta / LP</option>
             </select>
 
             <select
               title="Filtrar por Categoria"
               value={selectedTypeGroup}
               onChange={(e) => setSelectedTypeGroup(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112]" value="all">Todas Categorias</option>
-              <option className="bg-[#111112]" value="gateways">Gateways</option>
-              <option className="bg-[#111112]" value="ai_pages">Páginas de IA</option>
-              <option className="bg-[#111112]" value="keywords">Palavras-Chaves</option>
-              <option className="bg-[#111112]" value="trackers">Checkout Trackers</option>
+              <option value="all">Todas Categorias</option>
+              <option value="gateways">Gateways</option>
+              <option value="ai_pages">Páginas de IA</option>
+              <option value="keywords">Palavras-Chaves</option>
+              <option value="trackers">Checkout Trackers</option>
             </select>
 
             <select
               title="Ordenar por"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-[#111112] text-zinc-300 border border-white/5 rounded-full px-4 py-2.5 text-xs outline-none focus:border-primary cursor-pointer h-11"
+              className="mac-input text-ink-primary/80 px-3 py-2 text-xs cursor-pointer h-11"
             >
-              <option className="bg-[#111112]" value="score-desc">Score: Maior → Menor</option>
-              <option className="bg-[#111112]" value="score-asc">Score: Menor → Maior</option>
-              <option className="bg-[#111112]" value="funnel-asc">Funil: A → Z [Grupo]</option>
-              <option className="bg-[#111112]" value="funnel-desc">Funil: Z → A [Grupo]</option>
-              <option className="bg-[#111112]" value="date-desc">Recentes Primeiro</option>
+              <option value="score-desc">Score: Maior → Menor</option>
+              <option value="score-asc">Score: Menor → Maior</option>
+              <option value="funnel-asc">Funil: A → Z [Grupo]</option>
+              <option value="funnel-desc">Funil: Z → A [Grupo]</option>
+              <option value="date-desc">Recentes Primeiro</option>
             </select>
 
             <button
               onClick={triggerCsvDownload}
               disabled={filteredHits.length === 0}
-              className="bg-primary hover:bg-primary-hover active:bg-[#CC1F1F] text-white font-bold rounded-full text-[10px] uppercase px-4 h-11 flex items-center justify-center gap-1.5 transition-all outline-none border-none enabled:cursor-pointer disabled:opacity-30 tracking-wider shadow-[0_0_15px_rgba(255,42,42,0.25)]"
+              className="mac-btn-primary text-white font-bold text-[10px] uppercase px-4 h-11 flex items-center justify-center gap-1.5 enabled:cursor-pointer disabled:opacity-30 tracking-wider font-sans shrink-0"
             >
               <Download className="w-3.5 h-3.5" /> CSV
             </button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] font-sans font-semibold text-zinc-500 pt-1">
+        <div className="flex items-center justify-between text-[11px] font-sans font-semibold text-ink-tertiary pt-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-systemGreen"></span>
             Filtrando {filteredHits.length} de {offerHits.length} correspondências coletadas
           </div>
           {offerHits.length > 0 && (
             <button
               onClick={clearDatabase}
-              className="text-primary hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer text-[10px]"
+              className="text-primary hover:text-red-450 font-bold uppercase tracking-wider transition-colors cursor-pointer text-[10px] font-sans"
             >
               Apagar Histórico
             </button>
@@ -380,16 +379,16 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
 
       {/* 3. Tabela & Card grids */}
       {filteredHits.length === 0 ? (
-        <div className="bento-card rounded-2xl p-16 text-center text-zinc-500 font-medium border border-white/5 bg-[#0e0e0f]">
+        <div className="mac-card p-16 text-center text-ink-tertiary font-medium">
           <p className="text-sm">Nenhum criativo ou funil localizado para os parâmetros de filtro.</p>
-          <p className="text-[11px] text-zinc-650 mt-2">Ative ou reinicie a varredura ativa de faturamentos sequenciais.</p>
+          <p className="text-[11px] text-ink-tertiary mt-2">Ative ou reinicie a varredura ativa de faturamentos sequenciais.</p>
         </div>
       ) : (
-        <div className="bento-card rounded-2xl overflow-hidden border border-white/5 bg-[#0e0e0f]/50">
-          <div className="hidden md:block overflow-x-auto">
+        <div className="mac-card overflow-hidden">
+          <div className="hidden md:block overflow-x-auto overflow-y-hidden">
             <table className="w-full text-left border-collapse font-sans">
               <thead>
-                <tr className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 font-bold uppercase tracking-widest h-12">
+                <tr className="bg-surface-raised border-b border-hairline text-[10px] text-ink-tertiary font-bold uppercase tracking-widest h-12 select-none">
                   <th className="px-6 py-3 font-bold">Rank</th>
                   <th className="px-4 py-3 font-bold">Score</th>
                   <th className="px-4 py-3 font-bold">Link da Oferta / Headings</th>
@@ -399,17 +398,17 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                   <th className="px-6 py-3 font-bold text-right">Análise</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-xs text-zinc-300">
+              <tbody className="divide-y divide-hairline text-xs text-ink-primary/80">
                 {sortedHits.map((hit) => {
-                  let badgeColors = "text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/15";
-                  if (hit.rank === "A") badgeColors = "text-primary bg-primary/10 border border-primary/15";
-                  if (hit.rank === "B") badgeColors = "text-amber-500 bg-amber-500/10 border border-amber-500/15";
-                  if (hit.rank === "C") badgeColors = "text-zinc-500 bg-white/5 border border-white/5";
+                  let badgeColors = "text-systemGreen bg-systemGreen/10 border border-systemGreen/25 rounded-mac-sm";
+                  if (hit.rank === "A") badgeColors = "text-primary bg-primary/10 border border-primary/25 rounded-mac-sm";
+                  if (hit.rank === "B") badgeColors = "text-systemYellow bg-systemYellow/10 border border-systemYellow/25 rounded-mac-sm";
+                  if (hit.rank === "C") badgeColors = "text-ink-tertiary bg-surface-raised border border-hairline rounded-mac-sm";
 
                   return (
-                    <tr key={hit.id} className="hover:bg-white/[0.015] border-b border-white/5 last:border-0 transition-all duration-200 group">
+                    <tr key={hit.id} className="hover:bg-white/[0.02] border-b border-hairline last:border-0 transition-all duration-200 group">
                       <td className="px-6 py-4 whitespace-nowrap font-mono font-bold">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeColors} shadow-sm select-none`}>
+                        <span className={`px-2.5 py-1 text-[10px] font-bold ${badgeColors} shadow-sm select-none`}>
                           {hit.rank}
                         </span>
                       </td>
@@ -425,21 +424,21 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                           </div>
                           <UrlConnectionStatus url={hit.url} />
                         </div>
-                        <div className="text-xs text-zinc-400 max-w-md truncate mt-1 font-medium font-sans">
+                        <div className="text-xs text-ink-secondary max-w-md truncate mt-1 font-medium font-sans">
                           {hit.title || "Headline não capturada"}
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="text-[10px] uppercase font-bold bg-white/5 px-2.5 py-1 rounded-full border border-white/5 text-zinc-400 group-hover:border-primary/20 transition-all">
+                        <span className="text-[10px] uppercase font-bold bg-surface-raised px-2.5 py-1 rounded-mac-sm border border-hairline text-ink-secondary group-hover:border-primary/30 transition-all">
                           {hit.nicho.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-zinc-400 uppercase font-semibold">
+                      <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-ink-secondary uppercase font-semibold">
                         {hit.type}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-zinc-400">
+                      <td className="px-4 py-4 whitespace-nowrap text-ink-secondary">
                         <div className="flex flex-col gap-1 items-start font-sans font-semibold">
-                          <span className="text-[11px] text-white font-semibold">{hit.platformName} · <span className="font-mono text-zinc-500 font-medium">{hit.market}</span></span>
+                          <span className="text-[11px] text-white font-semibold">{hit.platformName} · <span className="font-mono text-ink-tertiary font-medium">{hit.market}</span></span>
                           {(() => {
                             const group = classifyHitGroup(hit);
                             if (group === "gateways") {
@@ -449,9 +448,9 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                               return <span className="text-[8px] uppercase px-1.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold font-mono tracking-wider">Página de IA</span>;
                             }
                             if (group === "keywords") {
-                              return <span className="text-[8px] uppercase px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold font-mono tracking-wider">Ganchos WhatsApp</span>;
+                              return <span className="text-[8px] uppercase px-1.5 py-0.5 rounded-full bg-[#FFD60A]/10 border border-[#FFD60A]/20 text-[#FFD60A] font-bold font-mono tracking-wider">Ganchos WhatsApp</span>;
                             }
-                            return <span className="text-[8px] uppercase px-1.5 py-0.5 rounded-full bg-white/5 border border-white/5 text-zinc-400 font-mono tracking-wider">Checkout Tracker</span>;
+                            return <span className="text-[8px] uppercase px-1.5 py-0.5 rounded-full bg-surface-raised border border-hairline text-ink-secondary font-mono tracking-wider">Checkout Tracker</span>;
                           })()}
                         </div>
                       </td>
@@ -459,7 +458,7 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                         <button
                           title="Visualizar Screenshot"
                           onClick={() => setActiveScreenshot(hit)}
-                          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 text-zinc-400 hover:text-white transition-all cursor-pointer inline-flex items-center"
+                          className="p-2.5 mac-btn-secondary text-ink-secondary hover:text-white inline-flex items-center active:scale-95 cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                         </button>
@@ -469,7 +468,7 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                             setActiveDetail(hit);
                             setReanalysisResult(null);
                           }}
-                          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 text-zinc-400 hover:text-white transition-all cursor-pointer inline-flex items-center"
+                          className="p-2.5 mac-btn-secondary text-ink-secondary hover:text-white inline-flex items-center active:scale-95 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -482,20 +481,20 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
           </div>
 
           {/* Mobile visible layout layout */}
-          <div className="block md:hidden divide-y divide-white/5">
+          <div className="block md:hidden divide-y divide-hairline">
             {sortedHits.map((hit) => {
-              let badgeColors = "text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/15";
-              if (hit.rank === "A") badgeColors = "text-primary bg-primary/10 border border-primary/15";
-              if (hit.rank === "B") badgeColors = "text-amber-500 bg-amber-500/10 border border-amber-500/15";
-              if (hit.rank === "C") badgeColors = "text-zinc-500 bg-white/5 border border-white/5";
+              let badgeColors = "text-systemGreen bg-systemGreen/10 border border-systemGreen/25 rounded-mac-sm";
+              if (hit.rank === "A") badgeColors = "text-primary bg-primary/10 border border-primary/25 rounded-mac-sm";
+              if (hit.rank === "B") badgeColors = "text-systemYellow bg-systemYellow/10 border border-systemYellow/25 rounded-mac-sm";
+              if (hit.rank === "C") badgeColors = "text-ink-tertiary bg-surface-raised border border-hairline rounded-mac-sm";
 
               return (
                 <div key={hit.id} className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold ${badgeColors}`}>
+                    <span className={`px-2.5 py-1 text-[10px] font-mono font-bold ${badgeColors}`}>
                       RANK {hit.rank} · Score {hit.score}
                     </span>
-                    <span className="text-[10px] font-bold text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 uppercase">
+                    <span className="text-[10px] font-bold text-ink-secondary bg-surface-raised px-2 py-0.5 border border-hairline rounded-mac-sm uppercase">
                       {hit.market} · {hit.platformName}
                     </span>
                   </div>
@@ -505,29 +504,29 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                       href={hit.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:text-[#FF4D4D] font-mono text-xs font-semibold break-all block hover:underline"
+                      className="text-primary hover:text-primary-hover font-mono text-xs font-semibold break-all block hover:underline"
                     >
                       {hit.url}
                     </a>
                     <div className="pt-1 select-none">
                       <UrlConnectionStatus url={hit.url} />
                     </div>
-                    <p className="text-xs text-zinc-400 font-medium leading-relaxed mt-1">{hit.title || "Headline não capturada"}</p>
+                    <p className="text-xs text-ink-secondary font-medium leading-relaxed mt-1">{hit.title || "Headline não capturada"}</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-1 select-none">
-                    <span className="text-[9px] font-semibold bg-white/5 px-2.5 py-1 rounded-full border border-white/5 text-zinc-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-semibold bg-surface-raised px-2.5 py-1 rounded-mac-sm border border-hairline text-ink-secondary uppercase tracking-widest">
                       🏷 {hit.nicho.replace("_", " ")}
                     </span>
-                    <span className="text-[9px] font-semibold bg-white/5 px-2.5 py-1 rounded-full border border-white/5 text-zinc-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-semibold bg-surface-raised px-2.5 py-1 rounded-mac-sm border border-hairline text-ink-secondary uppercase tracking-widest">
                       {hit.type}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-hairline">
                     <button
                       onClick={() => setActiveScreenshot(hit)}
-                      className="py-3 bg-white/5 active:bg-white/10 rounded-full border border-white/5 text-zinc-300 text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold font-sans uppercase tracking-wider"
+                      className="py-3 mac-btn-secondary text-white text-xs flex items-center justify-center gap-1.5 cursor-pointer font-bold font-sans uppercase tracking-wider active:scale-95"
                     >
                       <Camera className="w-4 h-4 text-primary" /> Captura
                     </button>
@@ -536,7 +535,7 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                         setActiveDetail(hit);
                         setReanalysisResult(null);
                       }}
-                      className="py-3 bg-white/5 active:bg-white/10 rounded-full border border-white/5 text-zinc-300 text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold font-sans uppercase tracking-wider"
+                      className="py-3 mac-btn-secondary text-white text-xs flex items-center justify-center gap-1.5 cursor-pointer font-bold font-sans uppercase tracking-wider active:scale-95"
                     >
                       <Eye className="w-4 h-4 text-primary" /> Análise AI
                     </button>
@@ -550,23 +549,23 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
 
       {/* MODAL 1: Screenshot display */}
       {activeScreenshot && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <div className="relative bg-[#101011] border border-white/5 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
-            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-              <h3 className="text-xs font-bold text-zinc-400 font-mono uppercase tracking-widest truncate mr-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 mac-glass animate-fade-in">
+          <div className="relative mac-card max-w-3xl w-full overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-hairline flex items-center justify-between">
+              <h3 className="text-xs font-bold text-ink-secondary font-mono uppercase tracking-widest truncate mr-4">
                 Captura de Domínio: {activeScreenshot.domain}
               </h3>
               <button
                 onClick={() => setActiveScreenshot(null)}
-                className="text-[10px] text-zinc-400 hover:text-white font-bold uppercase tracking-wider px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full transition-all cursor-pointer select-none"
+                className="text-[10px] text-white font-bold uppercase tracking-wider px-3.5 py-1.5 mac-btn-secondary cursor-pointer select-none"
               >
                 fechar janela
               </button>
             </div>
 
-            <div className="p-6 flex flex-col items-center justify-center bg-[#0d0d0e]/60">
+            <div className="p-6 flex flex-col items-center justify-center bg-surface-base/40">
               {activeScreenshot.screenshotUrl ? (
-                <div className="relative max-h-[500px] overflow-auto border border-white/5 rounded-xl bg-black group max-w-full">
+                <div className="relative max-h-[500px] overflow-auto border border-hairline rounded-mac-md bg-black group max-w-full">
                   <img
                     src={activeScreenshot.screenshotUrl}
                     alt={`${activeScreenshot.domain}`}
@@ -584,33 +583,33 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                   <div
                     id={`screenshot-fallback-${activeScreenshot.id}`}
                     style={{ display: "none" }}
-                    className="p-12 text-center text-xs font-sans text-zinc-500 space-y-4"
+                    className="p-12 text-center text-xs font-sans text-ink-tertiary space-y-4"
                   >
                     <p className="font-bold text-primary tracking-wide text-xs">[ captura em processamento público ]</p>
-                    <p className="max-w-md mx-auto leading-relaxed bg-white/[0.02] p-4 border border-white/5 rounded-xl text-zinc-400 text-xs font-medium">
+                    <p className="max-w-md mx-auto leading-relaxed bg-surface-raised p-4 border border-hairline rounded-mac-md text-ink-secondary text-xs font-medium">
                       Como o escaneamento do urlscan é assíncrono e passível de filas, a captura do UUID <span className="text-white font-mono">{activeScreenshot.uuid}</span> está em renderização nos servidores públicos.
                     </p>
                     <a
                       href={`https://urlscan.io/result/${activeScreenshot.uuid}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-white/5 hover:bg-white/10 border border-white/5 px-4 py-2 rounded-full text-primary text-[10px] font-bold uppercase tracking-widest transition-colors font-sans cursor-pointer"
+                      className="inline-block mac-btn-secondary px-4 py-2 text-primary text-[10px] font-bold uppercase tracking-widest font-sans cursor-pointer"
                     >
                       Verificar direto no urlscan.io
                     </a>
                   </div>
                 </div>
               ) : (
-                <div className="p-12 text-center text-xs font-sans text-zinc-500 border border-dashed border-white/5 rounded-xl max-w-md">
+                <div className="p-12 text-center text-xs font-sans text-ink-tertiary border border-dashed border-hairline rounded-mac-md max-w-md">
                   <p className="font-bold text-primary mb-2 tracking-wide uppercase text-[10px]">[Processando Resolução]</p>
-                  <p className="mb-4 leading-relaxed text-zinc-400 text-xs font-medium">
+                  <p className="mb-4 leading-relaxed text-ink-secondary text-xs font-medium">
                     O screenshot da Lading Page está sendo indexado. Caso o tráfego do anunciante seja recente, a captura pode demorar um pouco na fila geral do repositório.
                   </p>
                   <a
                     href={activeScreenshot.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-primary hover:bg-primary-hover active:bg-[#CC1F1F] px-5 py-2.5 rounded-full text-white text-xs uppercase font-extrabold text-center tracking-wider shadow-md shadow-primary/20 cursor-pointer"
+                    className="inline-block mac-btn-primary px-5 py-2.5 text-white text-xs uppercase font-extrabold text-center tracking-wider cursor-pointer font-sans"
                   >
                     Visitar Oferta na Web
                   </a>
@@ -623,36 +622,36 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
 
       {/* MODAL 2: Technical Details & Gemini AI Audit */}
       {activeDetail && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in font-sans">
-          <div className="relative bg-[#101011] border border-white/5 rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl">
-            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-              <h3 className="text-xs font-bold text-zinc-400 font-sans uppercase tracking-widest flex items-center gap-1.5 select-none text-[10px]">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 mac-glass animate-fade-in font-sans">
+          <div className="relative mac-card max-w-xl w-full overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-hairline flex items-center justify-between">
+              <h3 className="text-xs font-bold text-ink-secondary font-sans uppercase tracking-widest flex items-center gap-1.5 select-none text-[10px]">
                 <Sparkles className="w-3.5 h-3.5 text-primary" /> Insights de Conversão AI
               </h3>
               <button
                 onClick={() => setActiveDetail(null)}
-                className="text-[10px] text-zinc-400 hover:text-white font-bold uppercase tracking-wider px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full transition-all cursor-pointer select-none"
+                className="text-[10px] text-white font-bold uppercase tracking-wider px-3.5 py-1.5 mac-btn-secondary cursor-pointer select-none"
               >
                 fechar painel
               </button>
             </div>
 
             <div className="p-6 space-y-6 max-h-[85vh] overflow-y-auto scrollbar-none">
-              <div className="space-y-3 font-mono text-xs p-5 bg-white/[0.02] border border-white/5 rounded-xl">
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-zinc-500 font-semibold uppercase">DOMÍNIO:</span>
+              <div className="space-y-3 font-mono text-xs p-5 bg-surface-raised border border-hairline rounded-mac-md">
+                <div className="flex justify-between border-b border-hairline pb-2">
+                  <span className="text-ink-tertiary font-semibold uppercase">DOMÍNIO:</span>
                   <span className="text-white font-extrabold">{activeDetail.domain}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-zinc-500 font-semibold uppercase">PLATAFORMA:</span>
-                  <span className="text-zinc-300 font-bold uppercase">{activeDetail.platformName}</span>
+                <div className="flex justify-between border-b border-hairline pb-2">
+                  <span className="text-ink-tertiary font-semibold uppercase">PLATAFORMA:</span>
+                  <span className="text-ink-secondary font-bold uppercase">{activeDetail.platformName}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2 font-bold text-primary">
-                  <span className="text-zinc-400 font-bold uppercase text-[11px]">Rank Real:</span>
+                <div className="flex justify-between border-b border-hairline pb-2 font-bold text-primary">
+                  <span className="text-ink-secondary font-bold uppercase text-[11px]">Rank Real:</span>
                   <span className="text-sm font-extrabold">Classe [{activeDetail.rank}] / Score {activeDetail.score}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 font-semibold uppercase">Classificado:</span>
+                  <span className="text-ink-tertiary font-semibold uppercase">Classificado:</span>
                   <span className="text-primary uppercase font-bold text-[11px]">
                     {activeDetail.nicho} ({activeDetail.type})
                   </span>
@@ -660,55 +659,55 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
               </div>
 
               <div className="space-y-2">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block">Headline Identificada na LP</span>
-                <p className="text-xs border-l-2 border-primary pl-4 py-0.5 italic text-zinc-300 font-medium leading-relaxed font-sans">
+                <span className="text-[10px] text-ink-tertiary font-bold uppercase tracking-widest block">Headline Identificada na LP</span>
+                <p className="text-xs border-l-2 border-primary pl-4 py-0.5 italic text-ink-primary/80 font-medium leading-relaxed font-sans">
                   "{activeDetail.title || "Nenhuma meta headline encontrada"}"
                 </p>
               </div>
 
-              <div className="border-t border-white/5 pt-5 space-y-4">
-                <div className="block text-[11px] text-zinc-400 leading-relaxed font-medium">
+              <div className="border-t border-hairline pt-5 space-y-4">
+                <div className="block text-[11px] text-ink-secondary leading-relaxed font-medium">
                   Solicite uma auditoria complementar em fração de segundos. O Gemini avaliará o arranjo mercadológico deste funil contra criativos concorrentes brasileiros.
                 </div>
 
                 {!isReanalyzing ? (
                   <button
                     onClick={() => handleGeminiReanalysis(activeDetail)}
-                    className="w-full bg-primary hover:bg-primary-hover active:bg-[#CC1F1F] text-white font-bold py-3 px-5 rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(255,42,42,0.3)]"
+                    className="w-full mac-btn-primary text-white font-bold py-3 px-5 flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider"
                   >
-                    <RefreshCcw className="w-3.5 h-3.5 animate-pulse" /> Auditar Funil (Gemini AI)
+                    <RefreshCcw className="w-3.5 h-3.5" /> Auditar Funil (Gemini AI)
                   </button>
                 ) : (
-                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-center gap-2.5 text-primary text-xs font-bold uppercase tracking-wider">
+                  <div className="p-4 bg-surface-raised border border-hairline rounded-mac-md flex items-center justify-center gap-2.5 text-primary text-xs font-bold uppercase tracking-wider">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Engajando Modelos de Linguagem...</span>
                   </div>
                 )}
 
                 {reanalysisResult && (
-                  <div className="p-5 bg-[#0a0a0b] border border-white/5 rounded-xl space-y-4 font-sans text-xs text-zinc-300 leading-relaxed animate-fade-in relative overflow-hidden">
+                  <div className="p-5 bg-surface-base border border-[#FF453A]/25 rounded-mac-lg space-y-4 font-sans text-xs text-ink-primary/80 leading-relaxed mac-fade-in relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
 
-                    <div className="text-primary uppercase tracking-widest text-[9px] border-b border-white/5 pb-2 flex items-center gap-1.5 font-extrabold relative z-10">
+                    <div className="text-primary uppercase tracking-widest text-[9px] border-b border-hairline pb-2 flex items-center gap-1.5 font-extrabold relative z-10">
                       <Sparkles className="w-3.5 h-3.5" /> Relatório Completo Gemini AI:
                     </div>
                     
                     <div className="relative z-10">
-                      <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block">Headline Recomendada</span>
-                      <p className="text-white italic mt-1.5 bg-white/[0.02] p-3 border border-white/5 rounded-xl text-xs font-serif leading-relaxed">
+                      <span className="text-ink-tertiary text-[9px] font-bold uppercase tracking-wider block">Headline Recomendada</span>
+                      <p className="text-white italic mt-1.5 bg-surface-raised p-3 border border-hairline rounded-mac-md text-xs font-serif leading-relaxed">
                         "{reanalysisResult.headline}"
                       </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 relative z-10">
                       <div>
-                        <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block">Score Projetado</span>
-                        <div className="text-[#10B981] font-bold text-xs mt-1">
+                        <span className="text-ink-tertiary text-[9px] font-bold uppercase tracking-wider block">Score Projetado</span>
+                        <div className="text-systemGreen font-bold text-xs mt-1">
                           RANK {reanalysisResult.rank} · {reanalysisResult.score} pontos
                         </div>
                       </div>
                       <div>
-                        <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block">Classificação Heurística</span>
+                        <span className="text-ink-tertiary text-[9px] font-bold uppercase tracking-wider block">Classificação Heurística</span>
                         <div className="text-white font-bold text-xs mt-1 uppercase">
                           {reanalysisResult.nicho} · {reanalysisResult.type}
                         </div>
@@ -716,8 +715,8 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
                     </div>
 
                     <div className="relative z-10">
-                      <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block">Justificativa & Engenharia Reversa</span>
-                      <p className="text-zinc-400 text-xs leading-relaxed mt-1 font-medium">{reanalysisResult.justification}</p>
+                      <span className="text-ink-tertiary text-[9px] font-bold uppercase tracking-wider block">Justificativa & Engenharia Reversa</span>
+                      <p className="text-ink-secondary text-xs leading-relaxed mt-1 font-medium">{reanalysisResult.justification}</p>
                     </div>
                   </div>
                 )}
