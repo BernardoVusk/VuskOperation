@@ -35,6 +35,12 @@ interface Message {
   };
 }
 
+const isValidUuid = (str: string | undefined): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 // Initial seed default agents to showcase functionality instantly!
 const DEFAULT_SEED_AGENTS: Agent[] = [
   {
@@ -159,8 +165,9 @@ export function AIAgentsPanel() {
     setCurrentSession(null);
 
     const activeMode = modeOverride || localMode;
+    const isRemote = activeMode === "remote" && supabase && isValidUuid(agent.id);
 
-    if (activeMode === "local") {
+    if (!isRemote) {
       // Find or create local session for this agent
       const cachedSessions = localStorage.getItem("minerador_pro_ai_sessions");
       let localSessions: ChatSession[] = [];
@@ -358,8 +365,10 @@ export function AIAgentsPanel() {
     setMessages(nextMessages);
     setSendingMessage(true);
 
+    const isRemoteSession = localMode === "remote" && supabase && isValidUuid(currentSession.id);
+
     try {
-      if (localMode === "remote" && supabase) {
+      if (isRemoteSession) {
         // Save user message remotely (append attachment indicator to keep it visually identified)
         let storedContent = text;
         if (attachment) {
@@ -423,7 +432,7 @@ export function AIAgentsPanel() {
 
       setMessages([...nextMessages, aiMsg]);
 
-      if (localMode === "remote" && supabase) {
+      if (isRemoteSession) {
         // Save AI reply remotely
         const { error: insertAiErr } = await supabase
           .from("chat_messages")
@@ -467,7 +476,8 @@ export function AIAgentsPanel() {
 
     if (window.confirm("Deseja realmente limpar todo o histórico de mensagens desta conversa?")) {
       try {
-        if (localMode === "remote" && supabase) {
+        const isRemoteSession = localMode === "remote" && supabase && isValidUuid(currentSession.id);
+        if (isRemoteSession) {
           // Clear remote messages for this session
           const { error } = await supabase
             .from("chat_messages")
