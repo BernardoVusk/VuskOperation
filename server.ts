@@ -3,7 +3,6 @@ import path from "path";
 import dns from "dns";
 import http from "http";
 import https from "https";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
@@ -15,48 +14,50 @@ const PORT = 3000;
 app.use(express.json());
 
 // Lazy-initialized Gemini Client with strict support for new "AQ" keys and classic "AIzaSy" keys
-let aiInstance: GoogleGenAI | null = null;
-function getGemini(): GoogleGenAI | null {
-  if (!aiInstance) {
-    let key = process.env.GEMINI_API_KEY;
-    if (!key) {
-      console.warn("GEMINI_API_KEY environment variable is not defined. Falling back to heuristic/simulation scoring.");
-      return null;
-    }
-
-    // Sanitize the key: strip surrounding whitespace and common copy-paste errors (like quotes added in Vercel configuration)
-    key = key.trim();
-    if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
-      key = key.slice(1, -1).trim();
-    }
-
-    // Explicitly validate both key formats to reassure user compatibility
-    const isClassicKey = key.startsWith("AIzaSy");
-    const isNewAQKey = key.startsWith("AQ") || key.startsWith("AQ.");
-
-    if (isNewAQKey) {
-      console.log(`[Gemini API Key] Successfully processed and validated modern AQ-prefixed Gemini key (Length: ${key.length}).`);
-    } else if (isClassicKey) {
-      console.log(`[Gemini API Key] Successfully processed and validated classic AIza-prefixed Gemini key (Length: ${key.length}).`);
-    } else {
-      console.warn(`[Gemini API Key Warning] Key format does not match regular signature prefixes (AIzaSy or AQ). Proceeding anyway (Length: ${key.length}).`);
-    }
-
-    try {
-      aiInstance = new GoogleGenAI({
-        apiKey: key,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
-    } catch (err) {
-      console.error("Failed to initialize Gemini Client with provided key:", err);
-      return null;
-    }
+function getGemini(customKey?: string): GoogleGenAI | null {
+  let key = customKey || process.env.GEMINI_API_KEY || process.env.VUSK_GEMINI_KEY;
+  if (!key) {
+    console.warn("GEMINI_API_KEY / VUSK_GEMINI_KEY environment variable is not defined. Falling back to heuristic/simulation scoring.");
+    return null;
   }
-  return aiInstance;
+
+  // Sanitize the key: strip surrounding whitespace and common copy-paste errors (like quotes added in Vercel configuration)
+  key = key.trim();
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1).trim();
+  }
+
+  // Explicitly validate both key formats to reassure user compatibility
+  const isClassicKey = key.startsWith("AIzaSy");
+  const isNewAQKey = key.startsWith("AQ") || key.startsWith("AQ.");
+
+  if (isNewAQKey) {
+    console.log(`[Gemini API Key] Successfully processed and validated modern AQ-prefixed Gemini key (Length: ${key.length}).`);
+  } else if (isClassicKey) {
+    console.log(`[Gemini API Key] Successfully processed and validated classic AIza-prefixed Gemini key (Length: ${key.length}).`);
+  } else {
+    console.warn(`[Gemini API Key Warning] Key format does not match regular signature prefixes (AIzaSy or AQ). Proceeding anyway (Length: ${key.length}).`);
+  }
+
+  try {
+    return new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Failed to initialize Gemini Client with provided key:", err);
+    return null;
+  }
+}
+
+// Extract custom key dynamically from headers or body
+function getGeminiFromReq(req: express.Request): GoogleGenAI | null {
+  const customKey = (req.headers["x-gemini-key"] as string) || (req.body?.customApiKey as string);
+  return getGemini(customKey);
 }
 
 // Trackers Catalog (Including checkout trackers, gateways, AI hosts, and keyword expressions)
@@ -617,7 +618,7 @@ app.post("/api/agents/chat", async (req, res) => {
     return res.status(400).json({ success: false, error: "Messages array is required." });
   }
 
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
   if (!ai) {
     // Elegant fallback simulation is returned if Gemini key is missing
     const lastUserMessage = messages[messages.length - 1]?.content || "";
@@ -678,7 +679,7 @@ app.post("/api/generate-angles", async (req, res) => {
     return res.status(400).json({ success: false, error: "Nome do produto, nicho e promessa são obrigatórios." });
   }
 
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
 
   if (!ai) {
     // Generate robust mock copy angles dynamically when GEMINI_API_KEY is not defined
@@ -851,7 +852,7 @@ Diretrizes Críticas:
 // 1.8. POST Gerador de Dossiê Psicológico de Público-Alvo (Gemini API Integration)
 app.post("/api/generate-audience-dossier", async (req, res) => {
   const { nome, nicho, promessa, problema, publico, preco } = req.body;
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
   if (!ai) {
     const nichoLower = (nicho || "").toLowerCase();
     const nomeLower = (nome || "").toLowerCase();
@@ -2028,7 +2029,7 @@ app.post("/api/generate-landpage", async (req, res) => {
     return res.status(400).json({ success: false, error: "Nome do produto, nicho e promessa são obrigatórios." });
   }
 
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
 
   if (!ai) {
     // Generate robust dynamic high-fidelity simulated response when GEMINI_API_KEY is not defined
@@ -2467,7 +2468,7 @@ app.post("/api/generate-quiz", async (req, res) => {
     return res.status(400).json({ success: false, error: "Nome do produto, nicho e promessa são obrigatórios." });
   }
 
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
 
   if (!ai) {
     // Generate robust dynamic high-fidelity simulated response for Quiz
@@ -2912,7 +2913,7 @@ app.post("/api/analyze", async (req, res) => {
   const tracker = TRACKERS.find(t => t.id === trackerId);
   const platformName = tracker ? tracker.name : "Afiliados";
 
-  const ai = getGemini();
+  const ai = getGeminiFromReq(req);
 
   if (!ai) {
     // Graceful fallback using high performance client heuristics
@@ -3201,6 +3202,7 @@ app.get("/api/facebook/adsets", async (req, res) => {
 // Configure Vite integration for development vs production
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

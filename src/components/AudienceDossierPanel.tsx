@@ -177,10 +177,12 @@ export function AudienceDossierPanel() {
     setErrorText("");
 
     try {
+      const customKey = localStorage.getItem("vusk_custom_gemini_key") || "";
       const res = await fetch("/api/generate-audience-dossier", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-gemini-key": customKey
         },
         body: JSON.stringify({
           nome: prod.nome,

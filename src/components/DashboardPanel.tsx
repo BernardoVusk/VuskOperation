@@ -165,9 +165,13 @@ export function DashboardPanel({ offerHits, setOfferHits }: DashboardPanelProps)
     setReanalysisResult(null);
 
     try {
+      const customKey = localStorage.getItem("vusk_custom_gemini_key") || "";
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-gemini-key": customKey
+        },
         body: JSON.stringify({
           url: hit.url,
           title: hit.title,

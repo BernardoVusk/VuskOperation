@@ -101,10 +101,12 @@ export function CopyAnglesPanel() {
     setProductAnalyzed(prod.nome);
 
     try {
+      const customKey = localStorage.getItem("vusk_custom_gemini_key") || "";
       const res = await fetch("/api/generate-angles", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-gemini-key": customKey
         },
         body: JSON.stringify({
           nome: prod.nome,

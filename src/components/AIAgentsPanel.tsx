@@ -396,10 +396,12 @@ export function AIAgentsPanel() {
       }
 
       // Query server AI route `/api/agents/chat` which runs Gemini with system instruction
+      const customKey = localStorage.getItem("vusk_custom_gemini_key") || "";
       const response = await fetch("/api/agents/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-gemini-key": customKey
         },
         body: JSON.stringify({
           messages: nextMessages.map(m => ({

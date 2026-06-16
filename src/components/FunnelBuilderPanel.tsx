@@ -334,9 +334,13 @@ export function FunnelBuilderPanel() {
 
     try {
       const endpoint = mode === "landpage" ? "/api/generate-landpage" : "/api/generate-quiz";
+      const customKey = localStorage.getItem("vusk_custom_gemini_key") || "";
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-gemini-key": customKey
+        },
         body: JSON.stringify(payload)
       });
 
