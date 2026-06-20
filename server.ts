@@ -90,6 +90,20 @@ function getGeminiFromReq(req: express.Request): GoogleGenAI | null {
   return getGemini(customKey);
 }
 
+// Retenta automaticamente quando o Gemini responde 503/UNAVAILABLE (pico de demanda no modelo,
+// erro transitório e comum, não relacionado à nossa requisição) antes de propagar o erro.
+async function generateContentWithRetry(ai: GoogleGenAI, params: any, maxRetries = 2, baseDelayMs = 900): Promise<any> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await ai.models.generateContent(params);
+    } catch (err: any) {
+      const isOverloaded = String(err?.message || "").includes("UNAVAILABLE") || String(err?.message || "").includes('"code":503');
+      if (!isOverloaded || attempt === maxRetries) throw err;
+      await new Promise((resolve) => setTimeout(resolve, baseDelayMs * (attempt + 1)));
+    }
+  }
+}
+
 // Trackers Catalog (Including checkout trackers, gateways, AI hosts, and keyword expressions)
 const TRACKERS = [
   { id: "utmify", name: "UTMify Track", domain: "cdn.utmify.com.br", market: "BR", group: "tracker" },
@@ -3012,7 +3026,7 @@ Classifique o riskLevel geral como "baixo", "médio" ou "alto".`;
 
     parts.push({ text: promptText });
 
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry(ai, {
       model: "gemini-3.5-flash",
       contents: [{ role: "user", parts }],
       config: {
