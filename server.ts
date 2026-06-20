@@ -5,6 +5,7 @@ import http from "http";
 import https from "https";
 import crypto from "crypto";
 import { GoogleGenAI, Type } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
 dotenv.config({ path: [".env.local", ".env"] });
@@ -14,6 +15,15 @@ const PORT = 3000;
 
 // Limite alto pois /api/agents/chat e /api/compliance-check aceitam imagens em base64 (~1.37x o tamanho original)
 app.use(express.json({ limit: "15mb" }));
+
+// Cliente Supabase do servidor, usado pelas ferramentas dos Agentes IA (memória/RAG + ações) para
+// ler/escrever dados reais do operador. Mesma anon key pública usada no client: as RLS policies
+// do projeto já são públicas (sistema single-operator), então não há escalonamento de privilégio aqui.
+const supabaseServerUrl = process.env.VITE_SUPABASE_URL || "";
+const supabaseServerAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseServer = supabaseServerUrl && supabaseServerAnonKey
+  ? createClient(supabaseServerUrl, supabaseServerAnonKey)
+  : null;
 
 // AUTH: senha do operador validada no servidor contra hash em variável de ambiente
 // (nunca fica em texto plano no bundle do client, diferente da versão anterior).
@@ -654,6 +664,177 @@ app.get("/api/facebook/token-info", async (req, res) => {
   }
 });
 
+// Ferramentas (function calling) que qualquer Agente IA pode usar: consultas de leitura sobre
+// criativos/ofertas/playbooks reais do operador (memória/RAG) e ações que alteram dados (A4.1/A4.2).
+const AGENT_TOOLS: any[] = [
+  {
+    name: "buscar_criativos",
+    description: "Busca criativos salvos no Cofre de Criativos do operador, opcionalmente filtrando por nicho ou apenas vencedores.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        nicho: { type: Type.STRING, description: "Filtra por nicho (ex: emagrecimento, financas). Omita para todos." },
+        apenasVencedores: { type: Type.BOOLEAN, description: "Se true, retorna só criativos marcados como vencedores." }
+      }
+    }
+  },
+  {
+    name: "buscar_ofertas",
+    description: "Busca ofertas minadas (offer_hits), opcionalmente filtrando por rank (S/A/B/C) ou nicho.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        rank: { type: Type.STRING, description: "Filtra por rank: S, A, B ou C." },
+        nicho: { type: Type.STRING, description: "Filtra por nicho." },
+        limite: { type: Type.NUMBER, description: "Quantidade máxima de resultados (padrão 10, máximo 20)." }
+      }
+    }
+  },
+  {
+    name: "buscar_playbooks",
+    description: "Busca playbooks (procedimentos operacionais) salvos pelo operador, opcionalmente filtrando por termo no título.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        busca: { type: Type.STRING, description: "Termo de busca no título do playbook. Omita para listar os mais recentes." }
+      }
+    }
+  },
+  {
+    name: "salvar_playbook",
+    description: "Cria um novo playbook ou adiciona um passo a um playbook existente com o mesmo título. Use quando o operador pedir para guardar/salvar um ângulo de copy, processo ou aprendizado.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        titulo: { type: Type.STRING, description: "Título do playbook." },
+        conteudo: { type: Type.STRING, description: "Texto do passo/conteúdo a salvar." }
+      },
+      required: ["titulo", "conteudo"]
+    }
+  },
+  {
+    name: "marcar_criativo_vencedor",
+    description: "Marca ou desmarca, pelo nome do arquivo, um criativo do Cofre de Criativos como vencedor.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        nomeCriativo: { type: Type.STRING, description: "Nome (ou parte do nome) do arquivo do criativo." },
+        vencedor: { type: Type.BOOLEAN, description: "true para marcar como vencedor, false para desmarcar." }
+      },
+      required: ["nomeCriativo", "vencedor"]
+    }
+  }
+];
+
+const AGENT_TOOLS_SYSTEM_HINT = `\n\n---\nVocê tem ferramentas para consultar dados reais do operador (buscar_criativos, buscar_ofertas, buscar_playbooks) e para executar ações (salvar_playbook, marcar_criativo_vencedor). Use as ferramentas de busca sempre que precisar de dados concretos em vez de inventar. Use as ferramentas de ação somente quando o operador pedir explicitamente para guardar/salvar algo ou marcar um criativo como vencedor, e confirme o resultado em texto depois.`;
+
+async function executeAgentTool(name: string, args: Record<string, any>): Promise<any> {
+  if (!supabaseServer) {
+    return { error: "Supabase não está configurado no servidor. Não é possível acessar dados reais." };
+  }
+
+  try {
+    switch (name) {
+      case "buscar_criativos": {
+        let query = supabaseServer
+          .from("creatives")
+          .select("name, nicho, tags, is_winner, created_at")
+          .order("created_at", { ascending: false })
+          .limit(15);
+        if (args.nicho) query = query.ilike("nicho", `%${args.nicho}%`);
+        if (args.apenasVencedores) query = query.eq("is_winner", true);
+        const { data, error } = await query;
+        if (error) throw error;
+        return { criativos: data || [] };
+      }
+      case "buscar_ofertas": {
+        const limite = Math.min(Number(args.limite) || 10, 20);
+        let query = supabaseServer
+          .from("offer_hits")
+          .select("title, domain, nicho, type, rank, score, market")
+          .order("created_at", { ascending: false })
+          .limit(limite);
+        if (args.rank) query = query.eq("rank", String(args.rank).toUpperCase());
+        if (args.nicho) query = query.ilike("nicho", `%${args.nicho}%`);
+        const { data, error } = await query;
+        if (error) throw error;
+        return { ofertas: data || [] };
+      }
+      case "buscar_playbooks": {
+        let query = supabaseServer
+          .from("playbooks")
+          .select("id, titulo, passos, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10);
+        if (args.busca) query = query.ilike("titulo", `%${args.busca}%`);
+        const { data, error } = await query;
+        if (error) throw error;
+        return { playbooks: data || [] };
+      }
+      case "salvar_playbook": {
+        const titulo = String(args.titulo || "").trim();
+        const conteudo = String(args.conteudo || "").trim();
+        if (!titulo || !conteudo) return { error: "Título e conteúdo são obrigatórios." };
+
+        const { data: existing, error: findErr } = await supabaseServer
+          .from("playbooks")
+          .select("id, passos")
+          .ilike("titulo", titulo)
+          .limit(1)
+          .maybeSingle();
+        if (findErr) throw findErr;
+
+        if (existing) {
+          const passosAtuais = Array.isArray(existing.passos) ? existing.passos : [];
+          const novosPassos = [...passosAtuais, { texto: conteudo, criado_em: new Date().toISOString() }];
+          const { error: updateErr } = await supabaseServer
+            .from("playbooks")
+            .update({ passos: novosPassos, updated_at: new Date().toISOString() })
+            .eq("id", existing.id);
+          if (updateErr) throw updateErr;
+          return { sucesso: true, acao: "passo_adicionado_a_playbook_existente", playbookId: existing.id };
+        } else {
+          const { data: created, error: insertErr } = await supabaseServer
+            .from("playbooks")
+            .insert([{ titulo, passos: [{ texto: conteudo, criado_em: new Date().toISOString() }] }])
+            .select()
+            .single();
+          if (insertErr) throw insertErr;
+          return { sucesso: true, acao: "playbook_criado", playbookId: created.id };
+        }
+      }
+      case "marcar_criativo_vencedor": {
+        const nomeCriativo = String(args.nomeCriativo || "").trim();
+        if (!nomeCriativo) return { error: "Nome do criativo é obrigatório." };
+
+        const { data: matches, error: findErr } = await supabaseServer
+          .from("creatives")
+          .select("id, name")
+          .ilike("name", `%${nomeCriativo}%`)
+          .limit(5);
+        if (findErr) throw findErr;
+        if (!matches || matches.length === 0) {
+          return { error: `Nenhum criativo encontrado com nome parecido a "${nomeCriativo}".` };
+        }
+        if (matches.length > 1) {
+          return { aviso: "Mais de um criativo encontrado, seja mais específico.", opcoes: matches.map((m: any) => m.name) };
+        }
+
+        const { error: updateErr } = await supabaseServer
+          .from("creatives")
+          .update({ is_winner: Boolean(args.vencedor) })
+          .eq("id", matches[0].id);
+        if (updateErr) throw updateErr;
+        return { sucesso: true, criativo: matches[0].name, vencedor: Boolean(args.vencedor) };
+      }
+      default:
+        return { error: `Função desconhecida: ${name}` };
+    }
+  } catch (err: any) {
+    return { error: err.message || "Erro ao executar ação." };
+  }
+}
+
 // 1.5. POST Agente IA Custom Chat (Interact with Agent via Gemini)
 app.post("/api/agents/chat", async (req, res) => {
   const { messages, systemPrompt } = req.body;
@@ -699,15 +880,45 @@ app.post("/api/agents/chat", async (req, res) => {
       };
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: contents,
-      config: {
-        systemInstruction: systemPrompt || undefined,
-      }
-    });
+    const effectiveSystemInstruction = (systemPrompt || "") + AGENT_TOOLS_SYSTEM_HINT;
 
-    const text = response.text || "Desculpe, não consegui raciocinar uma resposta adequada.";
+    let text = "Desculpe, não consegui raciocinar uma resposta adequada.";
+    const MAX_TOOL_TURNS = 4;
+
+    for (let turn = 0; turn <= MAX_TOOL_TURNS; turn++) {
+      const response = await generateContentWithRetry(ai, {
+        model: "gemini-3.5-flash",
+        contents: contents,
+        config: {
+          systemInstruction: effectiveSystemInstruction,
+          tools: [{ functionDeclarations: AGENT_TOOLS }]
+        }
+      });
+
+      const calls = response.functionCalls;
+      if (!calls || calls.length === 0) {
+        text = response.text || text;
+        break;
+      }
+
+      // Agent decided to use a tool: append its call turn, then execute and append the results.
+      contents.push({
+        role: "model",
+        parts: calls.map((c: any) => ({ functionCall: c }))
+      });
+
+      const responseParts = [];
+      for (const call of calls) {
+        const result = await executeAgentTool(call.name, call.args || {});
+        responseParts.push({ functionResponse: { name: call.name, response: result } });
+      }
+      contents.push({ role: "user", parts: responseParts });
+
+      if (turn === MAX_TOOL_TURNS) {
+        text = response.text || "Não consegui concluir a ação a tempo. Tente reformular o pedido.";
+      }
+    }
+
     return res.json({ success: true, content: text });
   } catch (err: any) {
     console.error("Gemini Agent Chat execution failed:", err);

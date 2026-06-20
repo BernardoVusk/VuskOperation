@@ -18,7 +18,8 @@ import {
   ArrowRight,
   TrendingDown,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import imageCompression from "browser-image-compression";
@@ -64,6 +65,7 @@ export interface CreativeItem {
   tags: string[];
   nicho: string;
   created_at: string;
+  is_winner?: boolean;
 }
 
 export function CreativeVault() {
@@ -738,6 +740,13 @@ export function CreativeVault() {
                     <div className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 bg-surface-base text-ink-secondary border border-hairline px-2 py-0.5 rounded-mac-sm text-[9px] font-mono select-none">
                       WebP • {item.size_kb.toFixed(0)} KB
                     </div>
+
+                    {/* Winner badge, set via ação do Agente IA (marcar_criativo_vencedor) */}
+                    {item.is_winner && (
+                      <div className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 bg-systemYellow/15 text-systemYellow border border-systemYellow/30 px-2 py-0.5 rounded-mac-sm text-[9px] font-mono font-bold uppercase tracking-wider select-none">
+                        <Trophy className="w-3 h-3" /> Vencedor
+                      </div>
+                    )}
 
                     {/* Hover controls action triggers overlay */}
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
