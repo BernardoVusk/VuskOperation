@@ -3974,10 +3974,194 @@ app.post("/api/ads/webhook-secret", async (req, res) => {
   }
 });
 
+// Hash SHA256 em hex — usado tanto para `email_hash` (PII nunca armazenada em texto puro)
+// quanto para o `event_id` determinístico do lado webhook (`platform:externalOrderId`).
+function sha256Hex(value: string): string {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+// Envia um evento para a Graph API de Conversions (CAPI) do Meta usando uma config de
+// `capi_configs` já resolvida (e já escopada por operator pelo chamador — esta função não
+// faz nenhuma query, só envia). Compartilhada por `/api/track/collect` e pelo novo passo de
+// CAPI do webhook de checkout, para não duplicar a lógica de fetch/parse de erro da Graph API.
+// Nunca lança: erros de rede/HTTP da Graph API são devolvidos no formato `{ sent, response }`
+// para o chamador decidir o que persistir, mas exceções inesperadas (ex: fetch indisponível)
+// devem ser tratadas pelo try/catch do chamador, já que aqui não tem acesso ao contexto dele.
+async function sendCapiEvent(
+  capiConfig: { fb_pixel_id: string; capi_access_token: string; test_event_code?: string | null },
+  eventPayload: Record<string, any>
+): Promise<{ sent: boolean; response: any }> {
+  const body: any = { data: [eventPayload] };
+  if (capiConfig.test_event_code) {
+    body.test_event_code = capiConfig.test_event_code;
+  }
+
+  const url = `https://graph.facebook.com/v19.0/${capiConfig.fb_pixel_id}/events?access_token=${encodeURIComponent(capiConfig.capi_access_token)}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const resJson: any = await response.json();
+
+  if (!response.ok || resJson.error) {
+    return { sent: false, response: resJson };
+  }
+  return { sent: true, response: resJson };
+}
+
+// POST recebe eventos de tracking client-side (snippet de pixel das páginas — Task 14) e
+// grava em `tracking_events`, com encaminhamento best-effort para a Graph API CAPI quando
+// houver uma config ativa para o `fb_pixel_id`. Rota pública/não-autenticada (qualquer página
+// com o snippet chama isso), então é defensiva: nunca lança 500 por payload incompleto/sujo,
+// nunca confia em `client_ip`/`user_agent` do corpo, e nunca devolve `capi_access_token` nem
+// detalhes internos na resposta.
+app.post("/api/track/collect", async (req, res) => {
+  if (!supabaseServer) {
+    return res.json({ success: true });
+  }
+
+  try {
+    const {
+      event_id,
+      event_name,
+      fb_pixel_id,
+      url,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_content,
+      utm_term,
+      fbclid,
+      fbp,
+      fbc,
+      value,
+      currency,
+      email
+    } = req.body || {};
+
+    if (!event_name || typeof event_name !== "string" || !fb_pixel_id || typeof fb_pixel_id !== "string") {
+      return res.json({ success: true });
+    }
+
+    // client_ip/user_agent são capturados pelo servidor, nunca aceitos do corpo da requisição.
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const clientIp = typeof forwardedFor === "string"
+      ? forwardedFor.split(",")[0].trim()
+      : Array.isArray(forwardedFor) ? forwardedFor[0] : req.ip;
+    const userAgent = req.headers["user-agent"] || null;
+
+    const emailHash = typeof email === "string" && email ? sha256Hex(email.trim().toLowerCase()) : null;
+
+    // Resolve operator a partir do fb_pixel_id (pixels são únicos por operator+fb_pixel_id).
+    // Sem pixel cadastrado para esse fb_pixel_id, ainda gravamos o evento com operator null
+    // em vez de descartar — preserva o dado bruto para investigação manual depois, e uma
+    // requisição com fb_pixel_id desconhecido/forjado não deve derrubar nada.
+    const { data: pixelRow } = await supabaseServer
+      .from("pixels")
+      .select("operator")
+      .eq("fb_pixel_id", fb_pixel_id)
+      .maybeSingle();
+    const operator = pixelRow?.operator ?? null;
+
+    const { data: insertedEvent, error: insertErr } = await supabaseServer
+      .from("tracking_events")
+      .insert([{
+        operator,
+        event_id: event_id || null,
+        event_name,
+        source: "pixel",
+        fb_pixel_id,
+        url: url || null,
+        utm_source: utm_source || null,
+        utm_medium: utm_medium || null,
+        utm_campaign: utm_campaign || null,
+        utm_content: utm_content || null,
+        utm_term: utm_term || null,
+        fbclid: fbclid || null,
+        fbp: fbp || null,
+        fbc: fbc || null,
+        client_ip: clientIp || null,
+        user_agent: userAgent,
+        email_hash: emailHash,
+        value: typeof value === "number" ? value : null,
+        currency: currency || null,
+      }])
+      .select("id")
+      .single();
+
+    if (insertErr || !insertedEvent) {
+      console.error("track-collect: failed to insert tracking_event:", insertErr);
+      return res.json({ success: true });
+    }
+
+    // Encaminhamento best-effort para CAPI — uma falha aqui nunca deve afetar a resposta,
+    // o `tracking_events` já foi inserido com sucesso acima.
+    if (operator) {
+      try {
+        const { data: capiConfig } = await supabaseServer
+          .from("capi_configs")
+          .select("*")
+          .eq("operator", operator)
+          .eq("fb_pixel_id", fb_pixel_id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (capiConfig) {
+          const userData: Record<string, any> = {};
+          if (emailHash) userData.em = emailHash;
+          if (fbp) userData.fbp = fbp;
+          if (fbc) userData.fbc = fbc;
+          if (clientIp) userData.client_ip_address = clientIp;
+          if (userAgent) userData.client_user_agent = userAgent;
+
+          const eventPayload: any = {
+            event_name,
+            event_time: Math.floor(Date.now() / 1000),
+            event_id: event_id || undefined,
+            action_source: "website",
+            event_source_url: url || undefined,
+            user_data: userData
+          };
+          if (typeof value === "number") {
+            eventPayload.custom_data = { value, currency: currency || "BRL" };
+          }
+
+          const { sent, response } = await sendCapiEvent(capiConfig, eventPayload);
+          await supabaseServer
+            .from("tracking_events")
+            .update({ capi_sent: sent, capi_response: response })
+            .eq("id", insertedEvent.id);
+        }
+      } catch (capiErr) {
+        console.error("track-collect: capi send failed:", capiErr);
+      }
+
+      // Atualiza last_event_at/status do pixel para qualquer evento recebido (best-effort).
+      try {
+        await supabaseServer
+          .from("pixels")
+          .update({ last_event_at: new Date().toISOString(), status: "connected" })
+          .eq("operator", operator)
+          .eq("fb_pixel_id", fb_pixel_id);
+      } catch (pixelErr) {
+        console.error("track-collect: failed to update pixel last_event_at:", pixelErr);
+      }
+    }
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("track-collect: unexpected error:", err);
+    return res.json({ success: true });
+  }
+});
+
 // POST recebe webhooks de checkout (Hotmart, Kiwify, ...) e persiste vendas normalizadas.
 // Esta é a rota mais sensível do módulo de Anúncios — qualquer requisição é sempre registrada
 // em `webhook_events_raw` antes de qualquer outra coisa, para auditoria/replay manual, mesmo
-// que a assinatura falhe ou o parse não reconheça o payload. Não dispara CAPI (Task 16).
+// que a assinatura falhe ou o parse não reconheça o payload. Após marcar o evento bruto como
+// processado, dispara (best-effort) um evento Purchase via CAPI quando a venda for aprovada
+// (Task 16) — ver o passo "i." mais abaixo.
 app.post("/api/webhooks/checkout/:platform/:operatorToken", async (req, res) => {
   const { platform, operatorToken } = req.params;
 
@@ -4065,16 +4249,20 @@ app.post("/api/webhooks/checkout/:platform/:operatorToken", async (req, res) => 
     }
 
     // f. Resolve product_id via external_product_id (se houver) para este operador.
+    // Também traz `fb_pixel_id` do produto, usado no passo "i." (CAPI) mais abaixo para achar
+    // a config de CAPI vinculada a esse produto, sem precisar de uma query extra depois.
     let productId: string | null = null;
+    let productFbPixelId: string | null = null;
     if (sale.externalProductId) {
       const { data: productRow, error: productErr } = await supabaseServer
         .from("products")
-        .select("id")
+        .select("id, fb_pixel_id")
         .eq("operator", operator)
         .eq("external_product_id", sale.externalProductId)
         .maybeSingle();
       if (productErr) throw productErr;
       productId = productRow?.id ?? null;
+      productFbPixelId = productRow?.fb_pixel_id ?? null;
     }
 
     const { data: saleRow, error: saleUpsertErr } = await supabaseServer
@@ -4151,6 +4339,102 @@ app.post("/api/webhooks/checkout/:platform/:operatorToken", async (req, res) => 
       .from("webhook_events_raw")
       .update({ signature_valid: true, processed: true, error: null })
       .eq("id", rawEventId);
+
+    // i. Dispara (best-effort) um evento Purchase via CAPI quando a venda está aprovada.
+    // Inteiramente isolado em try/catch: a venda já está persistida e a resposta de sucesso
+    // já seria devolvida mesmo se tudo abaixo falhar — CAPI é só enriquecimento.
+    if (sale.status === "approved" && productFbPixelId) {
+      try {
+        const { data: capiConfig } = await supabaseServer
+          .from("capi_configs")
+          .select("*")
+          .eq("operator", operator)
+          .eq("fb_pixel_id", productFbPixelId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (capiConfig) {
+          const webhookEventId = sha256Hex(`${platform}:${sale.externalOrderId}`);
+          const emailHash = sale.buyer.email
+            ? sha256Hex(sale.buyer.email.trim().toLowerCase())
+            : null;
+
+          // Tenta casar um `tracking_event` recente do mesmo operador pelo `fbclid` da venda
+          // ou pelo `email_hash` do comprador, só para enriquecer fbc/fbp do evento CAPI —
+          // best-effort, sem modelo de atribuição (isso é a Task 18). Não bloqueia o envio.
+          let fbc: string | null = null;
+          let fbp: string | null = null;
+          try {
+            let matchQuery = supabaseServer
+              .from("tracking_events")
+              .select("fbc, fbp")
+              .eq("operator", operator)
+              .order("occurred_at", { ascending: false })
+              .limit(1);
+            if (sale.fbclid) {
+              matchQuery = matchQuery.eq("fbclid", sale.fbclid);
+            } else if (emailHash) {
+              matchQuery = matchQuery.eq("email_hash", emailHash);
+            } else {
+              matchQuery = null as any;
+            }
+            if (matchQuery) {
+              const { data: matchRow } = await matchQuery.maybeSingle();
+              fbc = matchRow?.fbc ?? null;
+              fbp = matchRow?.fbp ?? null;
+            }
+          } catch (matchErr) {
+            console.error("webhook-checkout: fbc/fbp best-effort match failed:", matchErr);
+          }
+
+          const userData: Record<string, any> = {};
+          if (emailHash) userData.em = emailHash;
+          if (fbc) userData.fbc = fbc;
+          if (fbp) userData.fbp = fbp;
+
+          const eventPayload: any = {
+            event_name: "Purchase",
+            event_time: Math.floor(new Date(sale.occurredAt).getTime() / 1000),
+            event_id: webhookEventId,
+            action_source: "website",
+            user_data: userData,
+            custom_data: {
+              value: sale.grossAmount ?? null,
+              currency: sale.currency || "BRL"
+            }
+          };
+
+          const { sent, response } = await sendCapiEvent(capiConfig, eventPayload);
+
+          await supabaseServer
+            .from("tracking_events")
+            .insert([{
+              operator,
+              event_id: webhookEventId,
+              event_name: "Purchase",
+              source: "webhook",
+              fb_pixel_id: productFbPixelId,
+              fbclid: sale.fbclid ?? null,
+              fbp,
+              fbc,
+              email_hash: emailHash,
+              value: sale.grossAmount ?? null,
+              currency: sale.currency || null,
+              sale_id: saleId,
+              capi_sent: sent,
+              capi_response: response,
+            }]);
+
+          await supabaseServer
+            .from("pixels")
+            .update({ last_event_at: new Date().toISOString(), status: "connected" })
+            .eq("operator", operator)
+            .eq("fb_pixel_id", productFbPixelId);
+        }
+      } catch (capiErr) {
+        console.error("webhook-checkout: capi purchase send failed:", capiErr);
+      }
+    }
 
     return res.status(200).json({ success: true, processed: true, saleId });
   } catch (err: any) {
