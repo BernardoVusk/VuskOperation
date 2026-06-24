@@ -3617,6 +3617,46 @@ app.get("/api/facebook/adsets", async (req, res) => {
   }
 });
 
+// POST gera/retorna o token de webhook do operador (módulo de Anúncios). O token é gerado
+// uma única vez por operador e reutilizado depois — usado pela aba "Vendas"/"Pixels" para
+// montar a URL de webhook que o operador cola nos checkouts/trackers.
+app.post("/api/ads/webhook-token", async (req, res) => {
+  const { operator } = req.body;
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "Operador é obrigatório." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data: existing, error: findErr } = await supabaseServer
+      .from("operator_webhook_tokens")
+      .select("token")
+      .eq("operator", operator)
+      .maybeSingle();
+    if (findErr) throw findErr;
+
+    if (existing) {
+      return res.json({ success: true, token: existing.token });
+    }
+
+    const token = crypto.randomBytes(24).toString("hex");
+    const { data: created, error: insertErr } = await supabaseServer
+      .from("operator_webhook_tokens")
+      .insert([{ operator, token }])
+      .select("token")
+      .single();
+    if (insertErr) throw insertErr;
+
+    return res.json({ success: true, token: created.token });
+  } catch (err: any) {
+    console.error("Failed to get/generate webhook token:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao gerar token de webhook." });
+  }
+});
+
 // Garante JSON mesmo em erros de middleware (ex: payload acima do limite), evitando que o
 // client receba a página HTML padrão de erro do Express e quebre o JSON.parse da resposta.
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
