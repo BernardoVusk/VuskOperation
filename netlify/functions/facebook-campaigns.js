@@ -23,7 +23,7 @@ exports.handler = async function(event) {
 
   try {
     const url = `https://graph.facebook.com/v19.0/${adAccountId}/campaigns?` +
-      `fields=id,name,status,insights.date_preset(${preset}){spend,reach,impressions,` +
+      `fields=id,name,status,daily_budget,insights.date_preset(${preset}){spend,reach,impressions,` +
       `inline_link_clicks,inline_link_click_ctr,cpm,cpc,actions,purchase_roas}` +
       `&access_token=${accessToken}` +
       `&limit=50`;
