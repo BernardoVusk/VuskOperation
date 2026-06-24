@@ -4054,15 +4054,21 @@ app.post("/api/track/collect", async (req, res) => {
     const emailHash = typeof email === "string" && email ? sha256Hex(email.trim().toLowerCase()) : null;
 
     // Resolve operator a partir do fb_pixel_id (pixels são únicos por operator+fb_pixel_id).
-    // Sem pixel cadastrado para esse fb_pixel_id, ainda gravamos o evento com operator null
-    // em vez de descartar — preserva o dado bruto para investigação manual depois, e uma
-    // requisição com fb_pixel_id desconhecido/forjado não deve derrubar nada.
+    // `operator` é NOT NULL em `tracking_events`, então sem pixel cadastrado para esse
+    // fb_pixel_id não há como inserir o evento — pula a inserção/CAPI e responde como se
+    // tivesse processado normalmente, sem revelar ao chamador (rota pública) se o pixel é
+    // válido ou não.
     const { data: pixelRow } = await supabaseServer
       .from("pixels")
       .select("operator")
       .eq("fb_pixel_id", fb_pixel_id)
       .maybeSingle();
     const operator = pixelRow?.operator ?? null;
+
+    if (!operator) {
+      console.warn("track-collect: unrecognized fb_pixel_id, skipping insert:", fb_pixel_id);
+      return res.json({ success: true });
+    }
 
     const { data: insertedEvent, error: insertErr } = await supabaseServer
       .from("tracking_events")
