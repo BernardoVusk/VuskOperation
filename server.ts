@@ -5008,14 +5008,19 @@ app.get("/api/ads/dashboard", async (req, res) => {
   }
 
   try {
-    const { data: insights, error: insightsErr } = await supabaseServer
-      .from("ad_insights_daily")
-      .select("date, spend")
-      .eq("operator", operator)
-      .eq("level", "account")
-      .gte("date", from)
-      .lte("date", to);
-    if (insightsErr) throw insightsErr;
+    // Paginado via `fetchAllRows` por consistência/segurança futura, mesmo que hoje seja ~1
+    // linha por dia: a UI de range customizado (AdsDashboard.tsx) não impõe limite máximo de
+    // intervalo, então o nº de linhas não tem garantia estrutural de ficar abaixo de 1000.
+    const insights = await fetchAllRows((rangeFrom, rangeTo) =>
+      supabaseServer!
+        .from("ad_insights_daily")
+        .select("date, spend")
+        .eq("operator", operator)
+        .eq("level", "account")
+        .gte("date", from)
+        .lte("date", to)
+        .range(rangeFrom, rangeTo)
+    );
 
     // Sem `.limit()`: dependendo do tamanho do intervalo [from, to] e do volume de vendas do
     // operador, pode passar de 1000 linhas, daí a paginação via `fetchAllRows`.
@@ -5101,14 +5106,19 @@ async function computeAdsPeriodTotals(
   from: string,
   to: string
 ): Promise<{ revenue: number; spend: number; roas: number | null; aov: number | null; salesCount: number }> {
-  const { data: insights, error: insightsErr } = await supabaseServer!
-    .from("ad_insights_daily")
-    .select("spend")
-    .eq("operator", operator)
-    .eq("level", "account")
-    .gte("date", from)
-    .lte("date", to);
-  if (insightsErr) throw insightsErr;
+  // Paginado via `fetchAllRows` por consistência/segurança futura, mesmo que hoje seja ~1
+  // linha por dia: a UI de range customizado (AdsAnalytics.tsx) não impõe limite máximo de
+  // intervalo, então o nº de linhas não tem garantia estrutural de ficar abaixo de 1000.
+  const insights = await fetchAllRows((rangeFrom, rangeTo) =>
+    supabaseServer!
+      .from("ad_insights_daily")
+      .select("spend")
+      .eq("operator", operator)
+      .eq("level", "account")
+      .gte("date", from)
+      .lte("date", to)
+      .range(rangeFrom, rangeTo)
+  );
 
   // Sem `.limit()`: períodos largos (ex: "todo o histórico") podem passar de 1000 vendas.
   const sales = await fetchAllRows((rangeFrom, rangeTo) =>
