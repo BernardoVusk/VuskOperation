@@ -5043,6 +5043,125 @@ app.get("/api/ads/dashboard", async (req, res) => {
   }
 });
 
+// Busca receita (sales, status='approved') e gasto (ad_insights_daily, level='account') para
+// um intervalo [from, to] e devolve os totais no mesmo formato da rota /api/ads/dashboard
+// (receita, gasto, ROAS, AOV, nº de vendas) — usa EXATAMENTE os mesmos filtros daquela rota
+// para que "receita"/"gasto" não tenham definições divergentes entre Dashboard e Analytics.
+// Função local (não compartilhada com a rota /api/ads/dashboard) para não arriscar alterar
+// o comportamento já aprovado daquela rota ao extrair um helper comum.
+async function computeAdsPeriodTotals(
+  operator: string,
+  from: string,
+  to: string
+): Promise<{ revenue: number; spend: number; roas: number | null; aov: number | null; salesCount: number }> {
+  const { data: insights, error: insightsErr } = await supabaseServer!
+    .from("ad_insights_daily")
+    .select("spend")
+    .eq("operator", operator)
+    .eq("level", "account")
+    .gte("date", from)
+    .lte("date", to);
+  if (insightsErr) throw insightsErr;
+
+  const { data: sales, error: salesErr } = await supabaseServer!
+    .from("sales")
+    .select("gross_amount")
+    .eq("operator", operator)
+    .eq("status", "approved")
+    .gte("occurred_at", `${from}T00:00:00.000Z`)
+    .lte("occurred_at", `${to}T23:59:59.999Z`);
+  if (salesErr) throw salesErr;
+
+  const totalSpend = (insights || []).reduce((sum, row) => sum + (row.spend || 0), 0);
+  const totalRevenue = (sales || []).reduce((sum, sale) => sum + (sale.gross_amount || 0), 0);
+  const salesCount = (sales || []).length;
+
+  return {
+    revenue: totalRevenue,
+    spend: totalSpend,
+    roas: totalSpend > 0 ? totalRevenue / totalSpend : null,
+    aov: salesCount > 0 ? totalRevenue / salesCount : null,
+    salesCount
+  };
+}
+
+// GET dados agregados para a aba "Analytics": totais de dois períodos (A e B) lado a lado
+// para comparação, breakdown de receita por `utm_campaign` e contagem do funil fixo
+// PageView -> InitiateCheckout -> Purchase — ambos os breakdowns calculados sobre o período B
+// (o período "atual"/mais recente da comparação), já que um breakdown por campanha/funil não
+// faz sentido fragmentado em dois intervalos simultâneos.
+app.get("/api/ads/analytics", async (req, res) => {
+  const operator = req.query.operator as string;
+  const periodA_from = req.query.periodA_from as string | undefined;
+  const periodA_to = req.query.periodA_to as string | undefined;
+  const periodB_from = req.query.periodB_from as string | undefined;
+  const periodB_to = req.query.periodB_to as string | undefined;
+
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "operator é obrigatório." });
+  }
+  if (!periodA_from || !periodA_to || !periodB_from || !periodB_to) {
+    return res.status(400).json({
+      success: false,
+      error: "periodA_from, periodA_to, periodB_from e periodB_to são obrigatórios."
+    });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const [periodA, periodB] = await Promise.all([
+      computeAdsPeriodTotals(operator, periodA_from, periodA_to),
+      computeAdsPeriodTotals(operator, periodB_from, periodB_to)
+    ]);
+
+    // Breakdown por UTM campaign e funil: calculados sobre o período B (vendas/eventos
+    // "approved"/registrados dentro de periodB_from..periodB_to).
+    const { data: salesB, error: salesBErr } = await supabaseServer
+      .from("sales")
+      .select("utm_campaign, gross_amount")
+      .eq("operator", operator)
+      .eq("status", "approved")
+      .gte("occurred_at", `${periodB_from}T00:00:00.000Z`)
+      .lte("occurred_at", `${periodB_to}T23:59:59.999Z`);
+    if (salesBErr) throw salesBErr;
+
+    // Vendas sem utm_campaign caem em "Sem UTM" em vez de serem descartadas do breakdown.
+    const byCampaignMap = new Map<string, { revenue: number; salesCount: number }>();
+    for (const sale of salesB || []) {
+      const campaign = sale.utm_campaign || "Sem UTM";
+      const entry = byCampaignMap.get(campaign) || { revenue: 0, salesCount: 0 };
+      entry.revenue += sale.gross_amount || 0;
+      entry.salesCount += 1;
+      byCampaignMap.set(campaign, entry);
+    }
+    const byCampaign = Array.from(byCampaignMap.entries())
+      .map(([campaign, stats]) => ({ campaign, revenue: stats.revenue, salesCount: stats.salesCount }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    const FUNNEL_EVENTS = ["PageView", "InitiateCheckout", "Purchase"] as const;
+    const funnel = [];
+    for (const eventName of FUNNEL_EVENTS) {
+      const { count, error: countErr } = await supabaseServer
+        .from("tracking_events")
+        .select("id", { count: "exact", head: true })
+        .eq("operator", operator)
+        .eq("event_name", eventName)
+        .gte("occurred_at", `${periodB_from}T00:00:00.000Z`)
+        .lte("occurred_at", `${periodB_to}T23:59:59.999Z`);
+      if (countErr) throw countErr;
+      funnel.push({ eventName, count: count || 0 });
+    }
+
+    return res.json({ success: true, periodA, periodB, byCampaign, funnel });
+  } catch (err: any) {
+    console.error("Ads analytics failed:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao buscar dados de analytics." });
+  }
+});
+
 // Garante JSON mesmo em erros de middleware (ex: payload acima do limite), evitando que o
 // client receba a página HTML padrão de erro do Express e quebre o JSON.parse da resposta.
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

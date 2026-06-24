@@ -18,6 +18,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { AdsDashboard } from "./AdsDashboard";
+import { AdsAnalytics } from "./AdsAnalytics";
 import { AdsAccounts } from "./AdsAccounts";
 import { AdsCampaigns } from "./AdsCampaigns";
 import { AdsAdSets } from "./AdsAdSets";
@@ -78,7 +79,7 @@ const SUB_TAB_GROUPS: AdsSubTabGroup[] = [
     title: "Visão",
     tabs: [
       { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, render: () => <AdsDashboard /> },
-      { id: "analytics", label: "Analytics", icon: LineChart, render: () => <Placeholder label="Analytics" /> }
+      { id: "analytics", label: "Analytics", icon: LineChart, render: () => <AdsAnalytics /> }
     ]
   },
   {
