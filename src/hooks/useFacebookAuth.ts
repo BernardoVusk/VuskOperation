@@ -60,11 +60,11 @@ export function useFacebookAuth() {
       "public_profile"
     ].join(",");
 
+    const redirectUri = `${window.location.origin}/auth/facebook/callback`;
+
     const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?` +
       `client_id=${FB_APP_ID}` +
-      `&redirect_uri=${encodeURIComponent(
-        "https://vuskoperation.netlify.app/auth/facebook/callback"
-      )}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=${encodeURIComponent(scopes)}` +
       `&response_type=code` +
       `&state=${Date.now()}`;

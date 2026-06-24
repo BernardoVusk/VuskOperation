@@ -25,7 +25,14 @@ export function FacebookCallbackHandler() {
     }
 
     // Trocar o code pelo token via backend
-    fetch(`/.netlify/functions/facebook-exchange?code=${encodeURIComponent(code)}`)
+    // O redirect_uri deve ser idêntico ao usado na chamada de autorização (useFacebookAuth.ts)
+    const redirectUri = `${window.location.origin}/auth/facebook/callback`;
+    const isNetlify = window.location.hostname.endsWith("netlify.app");
+    const exchangeUrl = isNetlify
+      ? `/.netlify/functions/facebook-exchange?code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(redirectUri)}`
+      : `/api/facebook/exchange-code?code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    fetch(exchangeUrl)
       .then(res => res.json())
       .then(data => {
         if (!data.success) throw new Error(data.error || "Erro ao trocar token");

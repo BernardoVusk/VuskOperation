@@ -567,7 +567,8 @@ app.get("/api/facebook/exchange-code", async (req, res) => {
 
   const FB_APP_ID = process.env.FACEBOOK_APP_ID || "1297847892562716";
   const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "";
-  const FB_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI ||
+  const FB_REDIRECT_URI = (req.query.redirect_uri as string | undefined) ||
+    process.env.FACEBOOK_REDIRECT_URI ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/auth/facebook/callback` : "https://vuskoperation.netlify.app/auth/facebook/callback");
 
   try {

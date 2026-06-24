@@ -22,7 +22,8 @@ exports.handler = async function(event, context) {
 
   const FB_APP_ID = process.env.FACEBOOK_APP_ID || "1297847892562716";
   const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "";
-  const FB_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI ||
+  const FB_REDIRECT_URI = params.get("redirect_uri") ||
+    process.env.FACEBOOK_REDIRECT_URI ||
     "https://vuskoperation.netlify.app/auth/facebook/callback";
 
   try {
