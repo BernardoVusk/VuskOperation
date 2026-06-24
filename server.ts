@@ -3974,6 +3974,241 @@ app.post("/api/ads/webhook-secret", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Atribuição (Task 18)
+//
+// IMPORTANTE — por que não há "decodificação de fbclid" aqui: o `fbclid` é um identificador
+// de clique opaco e interno do Facebook. Não existe formato documentado nem decodificável por
+// terceiros que permita extrair campaign/adset/ad id de dentro de um fbclid — qualquer
+// implementação que tentasse fazer isso estaria fabricando dados. Por isso a árvore de decisão
+// abaixo NUNCA tenta "parsear" o fbclid; ele só serve como sinal fraco de "veio de um anúncio
+// do Facebook", sem resolver qual.
+//
+// Árvore de decisão por venda (nessa ordem):
+//   (a) `utm_campaign` presente e casa (case-insensitive + trim) com `entity_name` de uma
+//       linha de `ad_insights_daily` (level='campaign') do mesmo operador
+//         → attributed_campaign_id = fb_entity_id, attribution_model = 'utm'
+//   (b) `utm_content` presente e casa diretamente (comparação exata) com `fb_entity_id` de uma
+//       linha de `ad_insights_daily` (level='ad') do mesmo operador — esse caminho assume a
+//       convenção recomendada de usar o parâmetro dinâmico do Facebook `utm_content={{ad.id}}`
+//       na URL de destino do anúncio, que literalmente grava o ad id numérico do Facebook como
+//       valor da UTM (diferente de (a), aqui não há ambiguidade de nome — é o id exato)
+//         → attributed_ad_id = fb_entity_id, e se (a) não setou attribution_model, vira 'utm'
+//   (c) Nem (a) nem (b) resolveram algo, mas existe `fbclid` na venda
+//         → attribution_model = 'fbclid', attributed_campaign_id/adset_id/ad_id ficam NULL —
+//           sabemos que a venda veio de UM clique em anúncio do Facebook, mas não podemos
+//           honestamente dizer qual campanha/anúncio foi
+//   (d) Nenhum sinal disponível
+//         → attribution_model = 'none'
+//
+// Decisão de design: o recompute reprocessa TODAS as vendas do operador a cada chamada (não
+// só as que ainda não têm attribution_model). Motivo: `ad_insights_daily` é sincronizado
+// incrementalmente (Task 9) — uma venda antiga pode ter ficado em 'none'/'fbclid' simplesmente
+// porque a campanha correspondente ainda não tinha sido sincronizada na época, e deve poder
+// ser "promovida" para 'utm' numa nova rodada sem o operador precisar resetar nada manualmente.
+// O custo (reprocessar tudo) é aceitável porque o volume de vendas de um operador único é baixo.
+
+interface AttributionAccumulator {
+  updated: number;
+  byModel: { utm: number; fbclid: number; none: number };
+}
+
+// POST recalcula `sales.attribution_model`/`attributed_*` de todas as vendas do operador,
+// cruzando `utm_campaign`/`utm_content` contra `ad_insights_daily`. Ver árvore de decisão acima.
+app.post("/api/ads/attribution/recompute", async (req, res) => {
+  const { operator } = req.body;
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "operator é obrigatório." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data: sales, error: salesErr } = await supabaseServer
+      .from("sales")
+      .select("id, utm_campaign, utm_content, fbclid")
+      .eq("operator", operator);
+    if (salesErr) throw salesErr;
+
+    const { data: campaignInsights, error: campaignErr } = await supabaseServer
+      .from("ad_insights_daily")
+      .select("fb_entity_id, entity_name")
+      .eq("operator", operator)
+      .eq("level", "campaign")
+      .not("entity_name", "is", null);
+    if (campaignErr) throw campaignErr;
+
+    const { data: adInsights, error: adErr } = await supabaseServer
+      .from("ad_insights_daily")
+      .select("fb_entity_id")
+      .eq("operator", operator)
+      .eq("level", "ad");
+    if (adErr) throw adErr;
+
+    // Mapa normalizado (trim + lowercase) de nome de campanha -> fb_entity_id, para o
+    // casamento (a). Várias linhas de insight (uma por dia) podem ter o mesmo entity_name —
+    // o `Map` simplesmente fica com a última, o que não importa pois o id é o mesmo.
+    const campaignByName = new Map<string, string>();
+    for (const row of campaignInsights || []) {
+      if (!row.entity_name) continue;
+      campaignByName.set(row.entity_name.trim().toLowerCase(), row.fb_entity_id);
+    }
+
+    // Set de ad ids conhecidos, para o casamento (b) — comparação exata (sem normalização),
+    // já que `{{ad.id}}` grava o id numérico literal, sem variação de caixa/espaço.
+    const adIds = new Set((adInsights || []).map((row) => row.fb_entity_id));
+
+    const acc: AttributionAccumulator = { updated: 0, byModel: { utm: 0, fbclid: 0, none: 0 } };
+
+    for (const sale of sales || []) {
+      let attributedCampaignId: string | null = null;
+      let attributedAdId: string | null = null;
+      let attributionModel: "utm" | "fbclid" | "none";
+
+      const campaignMatch = sale.utm_campaign
+        ? campaignByName.get(sale.utm_campaign.trim().toLowerCase())
+        : undefined;
+      if (campaignMatch) attributedCampaignId = campaignMatch;
+
+      const adMatch = sale.utm_content && adIds.has(sale.utm_content) ? sale.utm_content : undefined;
+      if (adMatch) attributedAdId = adMatch;
+
+      if (attributedCampaignId || attributedAdId) {
+        attributionModel = "utm";
+      } else if (sale.fbclid) {
+        attributionModel = "fbclid";
+      } else {
+        attributionModel = "none";
+      }
+
+      const { error: updateErr } = await supabaseServer
+        .from("sales")
+        .update({
+          attributed_campaign_id: attributedCampaignId,
+          attributed_ad_id: attributedAdId,
+          attribution_model: attributionModel
+        })
+        .eq("id", sale.id)
+        .eq("operator", operator);
+      if (updateErr) throw updateErr;
+
+      acc.updated += 1;
+      acc.byModel[attributionModel] += 1;
+    }
+
+    return res.json({ success: true, updated: acc.updated, byModel: acc.byModel });
+  } catch (err: any) {
+    console.error("Ads attribution recompute failed:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao recalcular atribuição." });
+  }
+});
+
+// GET resumo de atribuição para a aba "Atribuição": por entidade (campanha/anúncio) que tem ao
+// menos uma venda atribuída, soma o gasto (de `ad_insights_daily`, todas as datas) e a receita
+// bruta atribuída (de `sales.gross_amount`), com ROAS calculado. Também devolve a lista de
+// vendas não atribuídas (fbclid-only ou sem sinal nenhum) para a seção "não atribuídas".
+app.get("/api/ads/attribution/summary", async (req, res) => {
+  const operator = req.query.operator as string;
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "operator é obrigatório." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data: sales, error: salesErr } = await supabaseServer
+      .from("sales")
+      .select(
+        "id, attributed_campaign_id, attributed_ad_id, attribution_model, gross_amount, occurred_at, platform, products(name)"
+      )
+      .eq("operator", operator);
+    if (salesErr) throw salesErr;
+
+    const attributedSales = (sales || []).filter(
+      (s) => s.attributed_campaign_id || s.attributed_ad_id
+    );
+    const unattributedSales = (sales || []).filter(
+      (s) => !s.attributed_campaign_id && !s.attributed_ad_id
+    );
+
+    // Soma a receita atribuída por fb_entity_id (campanha OU anúncio — uma venda só deveria
+    // ter um dos dois preenchido na prática, mas somar os dois separadamente evita
+    // contabilizar a mesma venda duas vezes sob o mesmo id por engano).
+    const revenueByEntity = new Map<string, number>();
+    for (const sale of attributedSales) {
+      const entityId = sale.attributed_campaign_id || sale.attributed_ad_id;
+      if (!entityId) continue;
+      revenueByEntity.set(entityId, (revenueByEntity.get(entityId) || 0) + (sale.gross_amount || 0));
+    }
+
+    const entityIds = Array.from(revenueByEntity.keys());
+
+    let summary: Array<{
+      fb_entity_id: string;
+      entity_name: string | null;
+      level: string;
+      spend: number;
+      revenue: number;
+      roas: number | null;
+    }> = [];
+
+    if (entityIds.length > 0) {
+      const { data: insights, error: insightsErr } = await supabaseServer
+        .from("ad_insights_daily")
+        .select("fb_entity_id, entity_name, level, spend")
+        .eq("operator", operator)
+        .in("fb_entity_id", entityIds);
+      if (insightsErr) throw insightsErr;
+
+      // Agrega spend (soma de todas as datas) e mantém o último entity_name/level vistos por id.
+      const byEntity = new Map<
+        string,
+        { entity_name: string | null; level: string; spend: number }
+      >();
+      for (const row of insights || []) {
+        const prev = byEntity.get(row.fb_entity_id);
+        byEntity.set(row.fb_entity_id, {
+          entity_name: row.entity_name ?? prev?.entity_name ?? null,
+          level: row.level,
+          spend: (prev?.spend || 0) + (row.spend || 0)
+        });
+      }
+
+      summary = entityIds.map((entityId) => {
+        const info = byEntity.get(entityId);
+        const spend = info?.spend || 0;
+        const revenue = revenueByEntity.get(entityId) || 0;
+        return {
+          fb_entity_id: entityId,
+          entity_name: info?.entity_name ?? null,
+          level: info?.level ?? "unknown",
+          spend,
+          revenue,
+          roas: spend > 0 ? revenue / spend : null
+        };
+      });
+    }
+
+    const unattributed = unattributedSales.map((sale: any) => ({
+      id: sale.id,
+      occurred_at: sale.occurred_at,
+      platform: sale.platform,
+      gross_amount: sale.gross_amount,
+      product_name: sale.products?.name ?? null,
+      attribution_model: sale.attribution_model
+    }));
+
+    return res.json({ success: true, summary, unattributed });
+  } catch (err: any) {
+    console.error("Ads attribution summary failed:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao buscar resumo de atribuição." });
+  }
+});
+
 // Hash SHA256 em hex — usado tanto para `email_hash` (PII nunca armazenada em texto puro)
 // quanto para o `event_id` determinístico do lado webhook (`platform:externalOrderId`).
 function sha256Hex(value: string): string {
