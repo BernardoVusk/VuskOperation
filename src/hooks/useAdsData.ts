@@ -25,16 +25,22 @@ export function useAdsData() {
 
   const useAdsTable = useCallback(
     function useAdsTable<T = any>(table: string) {
-      if (SENSITIVE_TABLES.includes(table as any)) {
+      const isSensitive = SENSITIVE_TABLES.includes(table as any);
+      if (isSensitive) {
         console.warn(
           `[useAdsData] Acesso à tabela sensível "${table}" via useAdsTable é bloqueado no client. Use uma rota dedicada em server.ts.`
         );
       }
+      const sensitiveBlockError = <D,>(): AdsTableResult<D> => ({
+        success: false,
+        error: `"${table}" é uma tabela sensível — use uma rota dedicada do backend.`
+      });
 
       const list = async (
         columns = "*",
         modify?: (query: any) => any
       ): Promise<AdsTableResult<T[]>> => {
+        if (isSensitive) return sensitiveBlockError<T[]>();
         if (!supabase) return { success: false, error: "Supabase não configurado." };
         try {
           let query = supabase.from(table).select(columns).eq("operator", operator);
@@ -49,6 +55,7 @@ export function useAdsData() {
       };
 
       const insert = async (values: Partial<T> | Partial<T>[]): Promise<AdsTableResult<T[]>> => {
+        if (isSensitive) return sensitiveBlockError<T[]>();
         if (!supabase) return { success: false, error: "Supabase não configurado." };
         try {
           const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
@@ -68,6 +75,7 @@ export function useAdsData() {
         id: string,
         values: Partial<T>
       ): Promise<AdsTableResult<T[]>> => {
+        if (isSensitive) return sensitiveBlockError<T[]>();
         if (!supabase) return { success: false, error: "Supabase não configurado." };
         try {
           const { data, error } = await supabase
@@ -85,6 +93,7 @@ export function useAdsData() {
       };
 
       const remove = async (id: string): Promise<AdsTableResult<null>> => {
+        if (isSensitive) return sensitiveBlockError<null>();
         if (!supabase) return { success: false, error: "Supabase não configurado." };
         try {
           const { error } = await supabase
