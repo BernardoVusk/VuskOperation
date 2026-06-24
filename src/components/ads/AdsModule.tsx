@@ -24,6 +24,7 @@ import { AdsAds } from "./AdsAds";
 import { AdsProducts } from "./AdsProducts";
 import { AdsSales } from "./AdsSales";
 import { AdsPixels } from "./AdsPixels";
+import { AdsCapi } from "./AdsCapi";
 import { useFacebookAuth } from "../../hooks/useFacebookAuth";
 import { useAdsData } from "../../hooks/useAdsData";
 import { useOperator } from "../../contexts/OperatorContext";
@@ -84,7 +85,7 @@ const SUB_TAB_GROUPS: AdsSubTabGroup[] = [
       { id: "anuncios", label: "Anúncios", icon: Image, render: () => <AdsAds /> },
       { id: "pixels", label: "Pixels", icon: Target, render: () => <AdsPixels /> },
       { id: "contas", label: "Contas de Ads", icon: Wallet, render: () => <AdsAccounts /> },
-      { id: "capi", label: "Meta CAPI", icon: Webhook, render: () => <Placeholder label="Meta CAPI" /> }
+      { id: "capi", label: "Meta CAPI", icon: Webhook, render: () => <AdsCapi /> }
     ]
   },
   {

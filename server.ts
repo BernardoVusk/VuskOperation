@@ -4163,6 +4163,191 @@ app.post("/api/webhooks/checkout/:platform/:operatorToken", async (req, res) => 
   }
 });
 
+// Mascara capi_access_token para qualquer resposta ao client — só os últimos 4 caracteres
+// ficam visíveis (ex: "••••1234"). Usado consistentemente pelas 3 rotas de CAPI abaixo.
+function maskCapiToken(token: string | null | undefined): string {
+  if (!token) return "";
+  const last4 = token.slice(-4);
+  return `••••${last4}`;
+}
+
+function toMaskedCapiConfig(row: any) {
+  const { capi_access_token, ...rest } = row;
+  return { ...rest, capi_access_token_masked: maskCapiToken(capi_access_token) };
+}
+
+// GET lista as configs de CAPI do operador (token sempre mascarado) com o fb_pixel_id/nome do
+// pixel vinculado, para a aba "Meta CAPI" mostrar o que já está configurado por pixel.
+app.get("/api/ads/capi/configs", async (req, res) => {
+  const operator = req.query.operator as string;
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "operator é obrigatório." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data, error } = await supabaseServer
+      .from("capi_configs")
+      .select("*, pixels(name, fb_pixel_id)")
+      .eq("operator", operator)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    const configs = (data || []).map(toMaskedCapiConfig);
+    return res.json({ success: true, configs });
+  } catch (err: any) {
+    console.error("Failed to list capi configs:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao buscar configurações de CAPI." });
+  }
+});
+
+// POST cria/atualiza uma config de CAPI. Se `configId` for informado e `capiAccessToken` vier
+// vazio/ausente, mantém o token já armazenado (não sobrescreve com valor vazio) — só grava um
+// novo token quando o usuário efetivamente digitar um valor novo no form.
+app.post("/api/ads/capi/config", async (req, res) => {
+  const {
+    operator,
+    pixelId,
+    fbPixelId,
+    capiAccessToken,
+    testEventCode,
+    eventMap,
+    isActive,
+    configId
+  } = req.body;
+
+  if (!operator || !pixelId || !fbPixelId) {
+    return res.status(400).json({ success: false, error: "operator, pixelId e fbPixelId são obrigatórios." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    let tokenToSave = capiAccessToken;
+
+    if (configId) {
+      // Edição: sem token novo, mantém o que já está salvo.
+      if (!tokenToSave) {
+        const { data: existing, error: findErr } = await supabaseServer
+          .from("capi_configs")
+          .select("capi_access_token")
+          .eq("id", configId)
+          .eq("operator", operator)
+          .maybeSingle();
+        if (findErr) throw findErr;
+        if (!existing) {
+          return res.status(404).json({ success: false, error: "Configuração de CAPI não encontrada." });
+        }
+        tokenToSave = existing.capi_access_token;
+      }
+
+      const { data: updated, error: updateErr } = await supabaseServer
+        .from("capi_configs")
+        .update({
+          pixel_id: pixelId,
+          fb_pixel_id: fbPixelId,
+          capi_access_token: tokenToSave,
+          test_event_code: testEventCode || null,
+          event_map: eventMap || {},
+          is_active: isActive ?? true
+        })
+        .eq("id", configId)
+        .eq("operator", operator)
+        .select("*, pixels(name, fb_pixel_id)")
+        .single();
+      if (updateErr) throw updateErr;
+
+      return res.json({ success: true, config: toMaskedCapiConfig(updated) });
+    }
+
+    // Criação: token é obrigatório.
+    if (!tokenToSave) {
+      return res.status(400).json({ success: false, error: "capiAccessToken é obrigatório para criar uma nova configuração." });
+    }
+
+    const { data: created, error: insertErr } = await supabaseServer
+      .from("capi_configs")
+      .insert([{
+        operator,
+        pixel_id: pixelId,
+        fb_pixel_id: fbPixelId,
+        capi_access_token: tokenToSave,
+        test_event_code: testEventCode || null,
+        event_map: eventMap || {},
+        is_active: isActive ?? true
+      }])
+      .select("*, pixels(name, fb_pixel_id)")
+      .single();
+    if (insertErr) throw insertErr;
+
+    return res.json({ success: true, config: toMaskedCapiConfig(created) });
+  } catch (err: any) {
+    console.error("Failed to upsert capi config:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao salvar configuração de CAPI." });
+  }
+});
+
+// POST envia um evento de teste para a Graph API do Meta usando os dados salvos de uma config
+// de CAPI — usado pelo botão "Enviar evento de teste" da aba "Meta CAPI" para validar que o
+// access_token e o fb_pixel_id estão corretos antes de depender disso em produção.
+app.post("/api/ads/capi/test", async (req, res) => {
+  const { capiConfigId } = req.body;
+  if (!capiConfigId) {
+    return res.status(400).json({ success: false, error: "capiConfigId é obrigatório." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data: config, error: findErr } = await supabaseServer
+      .from("capi_configs")
+      .select("*")
+      .eq("id", capiConfigId)
+      .maybeSingle();
+    if (findErr) throw findErr;
+    if (!config) {
+      return res.status(404).json({ success: false, error: "Configuração de CAPI não encontrada." });
+    }
+
+    const eventPayload: any = {
+      data: [{
+        event_name: "TestEvent",
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: "website",
+        user_data: {}
+      }]
+    };
+    if (config.test_event_code) {
+      eventPayload.test_event_code = config.test_event_code;
+    }
+
+    const url = `https://graph.facebook.com/v19.0/${config.fb_pixel_id}/events?access_token=${encodeURIComponent(config.capi_access_token)}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(eventPayload)
+    });
+    const resJson: any = await response.json();
+
+    if (!response.ok || resJson.error) {
+      const errMsg = resJson.error?.message || "Erro desconhecido na API do Facebook";
+      return res.status(response.status || 400).json({ success: false, error: errMsg, graphResponse: resJson });
+    }
+
+    return res.json({ success: true, graphResponse: resJson });
+  } catch (err: any) {
+    console.error("Failed to send capi test event:", err);
+    return res.status(500).json({ success: false, error: err.message || "Falha ao enviar evento de teste." });
+  }
+});
+
 // Garante JSON mesmo em erros de middleware (ex: payload acima do limite), evitando que o
 // client receba a página HTML padrão de erro do Express e quebre o JSON.parse da resposta.
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
