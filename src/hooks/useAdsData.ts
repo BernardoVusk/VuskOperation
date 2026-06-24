@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useOperator } from "../contexts/OperatorContext";
 import { supabase } from "../lib/supabase";
 
@@ -25,114 +25,123 @@ export function useAdsData() {
 
   const useAdsTable = useCallback(
     function useAdsTable<T = any>(table: string) {
-      const isSensitive = SENSITIVE_TABLES.includes(table as any);
-      if (isSensitive) {
-        console.warn(
-          `[useAdsData] Acesso à tabela sensível "${table}" via useAdsTable é bloqueado no client. Use uma rota dedicada em server.ts.`
-        );
-      }
-      const sensitiveBlockError = <D,>(): AdsTableResult<D> => ({
-        success: false,
-        error: `"${table}" é uma tabela sensível — use uma rota dedicada do backend.`
-      });
-
-      const list = async (
-        columns = "*",
-        modify?: (query: any) => any
-      ): Promise<AdsTableResult<T[]>> => {
-        if (isSensitive) return sensitiveBlockError<T[]>();
-        if (!supabase) return { success: false, error: "Supabase não configurado." };
-        try {
-          let query = supabase.from(table).select(columns).eq("operator", operator);
-          if (modify) query = modify(query);
-          const { data, error } = await query;
-          if (error) throw error;
-          return { success: true, data: (data || []) as T[] };
-        } catch (err: any) {
-          console.error(`[useAdsData] Erro ao listar "${table}":`, err);
-          return { success: false, error: err.message || "Erro ao buscar dados." };
+      // Tudo abaixo vive dentro do useMemo (chaveado por table/operator) para que o objeto
+      // retornado mantenha a MESMA referência entre renders enquanto table/operator não
+      // mudarem. Sem isso, cada chamada de useAdsTable(table) cria funções novas a cada
+      // render, o que quebra a memoização de qualquer useCallback/useEffect downstream que
+      // dependa do objeto retornado — causando um loop de re-render/refetch infinito nos
+      // componentes que carregam dados no mount (ex: "Carregando..." que nunca termina).
+      return useMemo(() => {
+        const isSensitive = SENSITIVE_TABLES.includes(table as any);
+        if (isSensitive) {
+          console.warn(
+            `[useAdsData] Acesso à tabela sensível "${table}" via useAdsTable é bloqueado no client. Use uma rota dedicada em server.ts.`
+          );
         }
-      };
+        const sensitiveBlockError = <D,>(): AdsTableResult<D> => ({
+          success: false,
+          error: `"${table}" é uma tabela sensível — use uma rota dedicada do backend.`
+        });
 
-      const insert = async (values: Partial<T> | Partial<T>[]): Promise<AdsTableResult<T[]>> => {
-        if (isSensitive) return sensitiveBlockError<T[]>();
-        if (!supabase) return { success: false, error: "Supabase não configurado." };
-        try {
-          const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
-            ...row,
-            operator
-          }));
-          const { data, error } = await supabase.from(table).insert(rows).select();
-          if (error) throw error;
-          return { success: true, data: (data || []) as T[] };
-        } catch (err: any) {
-          console.error(`[useAdsData] Erro ao inserir em "${table}":`, err);
-          return { success: false, error: err.message || "Erro ao inserir dados." };
-        }
-      };
+        const list = async (
+          columns = "*",
+          modify?: (query: any) => any
+        ): Promise<AdsTableResult<T[]>> => {
+          if (isSensitive) return sensitiveBlockError<T[]>();
+          if (!supabase) return { success: false, error: "Supabase não configurado." };
+          try {
+            let query = supabase.from(table).select(columns).eq("operator", operator);
+            if (modify) query = modify(query);
+            const { data, error } = await query;
+            if (error) throw error;
+            return { success: true, data: (data || []) as T[] };
+          } catch (err: any) {
+            console.error(`[useAdsData] Erro ao listar "${table}":`, err);
+            return { success: false, error: err.message || "Erro ao buscar dados." };
+          }
+        };
 
-      const upsert = async (
-        values: Partial<T> | Partial<T>[],
-        onConflict: string
-      ): Promise<AdsTableResult<T[]>> => {
-        if (isSensitive) return sensitiveBlockError<T[]>();
-        if (!supabase) return { success: false, error: "Supabase não configurado." };
-        try {
-          const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
-            ...row,
-            operator
-          }));
-          const { data, error } = await supabase
-            .from(table)
-            .upsert(rows, { onConflict })
-            .select();
-          if (error) throw error;
-          return { success: true, data: (data || []) as T[] };
-        } catch (err: any) {
-          console.error(`[useAdsData] Erro ao upsertar em "${table}":`, err);
-          return { success: false, error: err.message || "Erro ao salvar dados." };
-        }
-      };
+        const insert = async (values: Partial<T> | Partial<T>[]): Promise<AdsTableResult<T[]>> => {
+          if (isSensitive) return sensitiveBlockError<T[]>();
+          if (!supabase) return { success: false, error: "Supabase não configurado." };
+          try {
+            const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
+              ...row,
+              operator
+            }));
+            const { data, error } = await supabase.from(table).insert(rows).select();
+            if (error) throw error;
+            return { success: true, data: (data || []) as T[] };
+          } catch (err: any) {
+            console.error(`[useAdsData] Erro ao inserir em "${table}":`, err);
+            return { success: false, error: err.message || "Erro ao inserir dados." };
+          }
+        };
 
-      const update = async (
-        id: string,
-        values: Partial<T>
-      ): Promise<AdsTableResult<T[]>> => {
-        if (isSensitive) return sensitiveBlockError<T[]>();
-        if (!supabase) return { success: false, error: "Supabase não configurado." };
-        try {
-          const { data, error } = await supabase
-            .from(table)
-            .update(values as any)
-            .eq("id", id)
-            .eq("operator", operator)
-            .select();
-          if (error) throw error;
-          return { success: true, data: (data || []) as T[] };
-        } catch (err: any) {
-          console.error(`[useAdsData] Erro ao atualizar "${table}":`, err);
-          return { success: false, error: err.message || "Erro ao atualizar dados." };
-        }
-      };
+        const upsert = async (
+          values: Partial<T> | Partial<T>[],
+          onConflict: string
+        ): Promise<AdsTableResult<T[]>> => {
+          if (isSensitive) return sensitiveBlockError<T[]>();
+          if (!supabase) return { success: false, error: "Supabase não configurado." };
+          try {
+            const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
+              ...row,
+              operator
+            }));
+            const { data, error } = await supabase
+              .from(table)
+              .upsert(rows, { onConflict })
+              .select();
+            if (error) throw error;
+            return { success: true, data: (data || []) as T[] };
+          } catch (err: any) {
+            console.error(`[useAdsData] Erro ao upsertar em "${table}":`, err);
+            return { success: false, error: err.message || "Erro ao salvar dados." };
+          }
+        };
 
-      const remove = async (id: string): Promise<AdsTableResult<null>> => {
-        if (isSensitive) return sensitiveBlockError<null>();
-        if (!supabase) return { success: false, error: "Supabase não configurado." };
-        try {
-          const { error } = await supabase
-            .from(table)
-            .delete()
-            .eq("id", id)
-            .eq("operator", operator);
-          if (error) throw error;
-          return { success: true, data: null };
-        } catch (err: any) {
-          console.error(`[useAdsData] Erro ao remover de "${table}":`, err);
-          return { success: false, error: err.message || "Erro ao remover dados." };
-        }
-      };
+        const update = async (
+          id: string,
+          values: Partial<T>
+        ): Promise<AdsTableResult<T[]>> => {
+          if (isSensitive) return sensitiveBlockError<T[]>();
+          if (!supabase) return { success: false, error: "Supabase não configurado." };
+          try {
+            const { data, error } = await supabase
+              .from(table)
+              .update(values as any)
+              .eq("id", id)
+              .eq("operator", operator)
+              .select();
+            if (error) throw error;
+            return { success: true, data: (data || []) as T[] };
+          } catch (err: any) {
+            console.error(`[useAdsData] Erro ao atualizar "${table}":`, err);
+            return { success: false, error: err.message || "Erro ao atualizar dados." };
+          }
+        };
 
-      return { list, insert, upsert, update, remove };
+        const remove = async (id: string): Promise<AdsTableResult<null>> => {
+          if (isSensitive) return sensitiveBlockError<null>();
+          if (!supabase) return { success: false, error: "Supabase não configurado." };
+          try {
+            const { error } = await supabase
+              .from(table)
+              .delete()
+              .eq("id", id)
+              .eq("operator", operator);
+            if (error) throw error;
+            return { success: true, data: null };
+          } catch (err: any) {
+            console.error(`[useAdsData] Erro ao remover de "${table}":`, err);
+            return { success: false, error: err.message || "Erro ao remover dados." };
+          }
+        };
+
+        return { list, insert, upsert, update, remove };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [table, operator]);
     },
     [operator]
   );
