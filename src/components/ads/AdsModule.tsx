@@ -21,6 +21,7 @@ import { AdsAccounts } from "./AdsAccounts";
 import { AdsCampaigns } from "./AdsCampaigns";
 import { AdsAdSets } from "./AdsAdSets";
 import { AdsAds } from "./AdsAds";
+import { AdsProducts } from "./AdsProducts";
 import { useFacebookAuth } from "../../hooks/useFacebookAuth";
 import { useAdsData } from "../../hooks/useAdsData";
 import { useOperator } from "../../contexts/OperatorContext";
@@ -88,7 +89,7 @@ const SUB_TAB_GROUPS: AdsSubTabGroup[] = [
     title: "Vendas",
     tabs: [
       { id: "vendas", label: "Vendas", icon: ShoppingCart, render: () => <Placeholder label="Vendas" /> },
-      { id: "produtos", label: "Produtos", icon: Package, render: () => <Placeholder label="Produtos" /> },
+      { id: "produtos", label: "Produtos", icon: Package, render: () => <AdsProducts /> },
       { id: "funis", label: "Funis", icon: GitBranch, render: () => <Placeholder label="Funis" /> },
       { id: "atribuicao", label: "Atribuição", icon: Workflow, render: () => <Placeholder label="Atribuição" /> },
       { id: "eventos", label: "Eventos", icon: Activity, render: () => <Placeholder label="Eventos" /> }
