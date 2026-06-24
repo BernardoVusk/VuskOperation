@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   LayoutDashboard,
   LineChart,
@@ -12,12 +12,18 @@ import {
   Package,
   GitBranch,
   Workflow,
-  Activity
+  Activity,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { AdsAccounts } from "./AdsAccounts";
 import { AdsCampaigns } from "./AdsCampaigns";
 import { AdsAdSets } from "./AdsAdSets";
 import { AdsAds } from "./AdsAds";
+import { useFacebookAuth } from "../../hooks/useFacebookAuth";
+import { useAdsData } from "../../hooks/useAdsData";
+import { useOperator } from "../../contexts/OperatorContext";
 
 type AdsSubTab =
   | "dashboard"
@@ -90,10 +96,83 @@ const SUB_TAB_GROUPS: AdsSubTabGroup[] = [
   }
 ];
 
+interface DefaultAdAccount {
+  fb_account_id: string;
+}
+
 export function AdsModule() {
   const [adsSubTab, setAdsSubTab] = useState<AdsSubTab>("dashboard");
 
   const activeDef = SUB_TAB_GROUPS.flatMap((g) => g.tabs).find((t) => t.id === adsSubTab);
+
+  const operator = useOperator();
+  const { authState } = useFacebookAuth();
+  const { useAdsTable } = useAdsData();
+  const accountsTable = useAdsTable<DefaultAdAccount>("ad_accounts");
+
+  const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
+  const [isCheckingDefault, setIsCheckingDefault] = useState(true);
+  const [isSyncingInsights, setIsSyncingInsights] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  // Resolve a conta de anúncios padrão do operador (Task 5) para saber qual conta sincronizar.
+  useEffect(() => {
+    let active = true;
+    setIsCheckingDefault(true);
+    accountsTable
+      .list("fb_account_id", (q) => q.eq("is_default", true).limit(1))
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data.length > 0) {
+          setDefaultAccountId(res.data[0].fb_account_id);
+        } else {
+          setDefaultAccountId(null);
+        }
+      })
+      .finally(() => {
+        if (active) setIsCheckingDefault(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSyncInsights = useCallback(async () => {
+    if (!authState.accessToken || !defaultAccountId) return;
+    setIsSyncingInsights(true);
+    setSyncResult(null);
+    setSyncError(null);
+    try {
+      const res = await fetch("/api/ads/sync-insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken: authState.accessToken,
+          fbAccountId: defaultAccountId,
+          operator
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || "Erro ao sincronizar insights.");
+      }
+      setSyncResult(`${data.upserted} linha${data.upserted === 1 ? "" : "s"} sincronizada${data.upserted === 1 ? "" : "s"}.`);
+    } catch (err: any) {
+      setSyncError(err.message || "Erro de rede ao sincronizar insights.");
+    } finally {
+      setIsSyncingInsights(false);
+    }
+  }, [authState.accessToken, defaultAccountId, operator]);
+
+  const syncDisabledReason = !authState.accessToken
+    ? "Conecte o Facebook primeiro."
+    : isCheckingDefault
+    ? "Verificando conta padrão..."
+    : !defaultAccountId
+    ? 'Defina uma conta de anúncios padrão na aba "Contas de Ads" primeiro.'
+    : null;
 
   return (
     <div className="space-y-6 animate-fade-in mac-fade-in">
@@ -115,6 +194,33 @@ export function AdsModule() {
           <p className="text-xs text-ink-secondary max-w-xl font-semibold mt-0.5">
             Campanhas, vendas e atribuição em um só lugar.
           </p>
+        </div>
+
+        <div className="flex flex-col items-end gap-1.5">
+          <button
+            onClick={handleSyncInsights}
+            disabled={!!syncDisabledReason || isSyncingInsights}
+            title={syncDisabledReason || undefined}
+            className="px-3.5 py-2 bg-primary hover:bg-red-650 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold rounded-mac-sm transition-all font-sans cursor-pointer flex items-center gap-1.5 uppercase tracking-wider"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingInsights ? "animate-spin" : ""}`} />
+            Sincronizar agora
+          </button>
+          {syncDisabledReason && !isSyncingInsights && (
+            <span className="text-[10px] text-ink-tertiary font-semibold max-w-[220px] text-right">
+              {syncDisabledReason}
+            </span>
+          )}
+          {syncResult && (
+            <span className="text-[10px] text-systemGreen font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> {syncResult}
+            </span>
+          )}
+          {syncError && (
+            <span className="text-[10px] text-systemRed font-semibold flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {syncError}
+            </span>
+          )}
         </div>
       </div>
 

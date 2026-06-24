@@ -3789,6 +3789,119 @@ app.post("/api/facebook/ad/:id/status", async (req, res) => {
   }
 });
 
+// Extrai de actions[]/action_values[] da Graph API o número de "resultados" (compras + leads,
+// mesma convenção de AdsCampaigns.tsx) e o valor monetário das compras. action_values segue o
+// mesmo formato de actions ({ action_type, value }), só que value é o valor em dinheiro.
+function extractResultsAndValue(
+  actions: Array<{ action_type: string; value: string }> | undefined,
+  actionValues: Array<{ action_type: string; value: string }> | undefined
+): { results: number; purchaseValue: number } {
+  const findAction = (list: Array<{ action_type: string; value: string }> | undefined, types: string[]) =>
+    Array.isArray(list) ? list.find((a) => types.includes(a.action_type)) : undefined;
+
+  const purchaseTypes = ["purchase", "offsite_conversion.fb_pixel_purchase"];
+  const leadTypes = ["lead", "offsite_conversion.fb_pixel_lead", "lead_grouped", "onsite_conversion.lead_grouped"];
+
+  const purchase = findAction(actions, purchaseTypes);
+  const lead = findAction(actions, leadTypes);
+  const purchaseValueAction = findAction(actionValues, purchaseTypes);
+
+  const purchaseCount = purchase ? parseInt(purchase.value) || 0 : 0;
+  const leadCount = lead ? parseInt(lead.value) || 0 : 0;
+  const purchaseValue = purchaseValueAction ? parseFloat(purchaseValueAction.value) || 0 : 0;
+
+  return { results: purchaseCount + leadCount, purchaseValue };
+}
+
+// Busca os insights de um nível (account/campaign/adset/ad) via a edge /insights da conta de
+// anúncios com o parâmetro `level` — uma única chamada por nível retorna todas as entidades
+// daquele nível já com seus próprios ids/nomes, evitando o padrão N+1 de enumerar campanhas,
+// depois conjuntos por campanha, depois anúncios por conjunto.
+async function fetchLevelInsights(
+  fbAccountId: string,
+  accessToken: string,
+  level: "account" | "campaign" | "adset" | "ad"
+): Promise<any[]> {
+  const idField = level === "account" ? "account_id" : `${level}_id`;
+  const nameField = level === "account" ? "account_name" : `${level}_name`;
+  const fields = `${idField},${nameField},spend,impressions,reach,clicks,ctr,cpc,cpm,actions,action_values`;
+  const url = `https://graph.facebook.com/v19.0/act_${fbAccountId}/insights?level=${level}&fields=${encodeURIComponent(fields)}&date_preset=today&limit=500&access_token=${encodeURIComponent(accessToken)}`;
+
+  const response = await fetch(url);
+  const resJson: any = await response.json();
+  if (!response.ok || resJson.error) {
+    const errMsg = resJson.error?.message || `Erro desconhecido na API do Facebook (level=${level})`;
+    throw new Error(errMsg);
+  }
+  return resJson.data || [];
+}
+
+// POST sincroniza o snapshot diário de insights (spend/impressions/etc.) das 4 entidades do
+// Facebook (conta, campanha, conjunto, anúncio) em public.ad_insights_daily. Usa date_preset=
+// "today" (em vez de "yesterday") porque o objetivo é o snapshot do dia em curso — chamadas
+// repetidas no mesmo dia simplesmente sobrescrevem a linha via upsert (onConflict inclui a
+// data), então rodar de novo mais tarde no mesmo dia apenas atualiza os números acumulados.
+app.post("/api/ads/sync-insights", async (req, res) => {
+  const { accessToken, fbAccountId, operator } = req.body;
+
+  if (!accessToken || !fbAccountId || !operator) {
+    return res.status(400).json({ success: false, error: "accessToken, fbAccountId e operator são obrigatórios." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  const levels: Array<"account" | "campaign" | "adset" | "ad"> = ["account", "campaign", "adset", "ad"];
+  const byLevel: Record<string, number> = { account: 0, campaign: 0, adset: 0, ad: 0 };
+  const today = new Date().toISOString().slice(0, 10);
+
+  try {
+    for (const level of levels) {
+      const rawRows = await fetchLevelInsights(fbAccountId, accessToken, level);
+
+      const idField = level === "account" ? "account_id" : `${level}_id`;
+      const nameField = level === "account" ? "account_name" : `${level}_name`;
+
+      const rows = rawRows.map((row: any) => {
+        const { results, purchaseValue } = extractResultsAndValue(row.actions, row.action_values);
+        return {
+          operator,
+          level,
+          fb_account_id: fbAccountId,
+          fb_entity_id: level === "account" ? fbAccountId : row[idField],
+          entity_name: row[nameField] ?? null,
+          date: row.date_start || today,
+          spend: parseFloat(row.spend) || 0,
+          impressions: parseInt(row.impressions) || 0,
+          reach: parseInt(row.reach) || 0,
+          clicks: parseInt(row.clicks) || 0,
+          ctr: row.ctr ? parseFloat(row.ctr) : null,
+          cpc: row.cpc ? parseFloat(row.cpc) : null,
+          cpm: row.cpm ? parseFloat(row.cpm) : null,
+          results,
+          fb_purchase_value: purchaseValue
+        };
+      });
+
+      if (rows.length > 0) {
+        const { error: upsertErr } = await supabaseServer
+          .from("ad_insights_daily")
+          .upsert(rows, { onConflict: "operator,level,fb_entity_id,date" });
+        if (upsertErr) throw upsertErr;
+      }
+
+      byLevel[level] = rows.length;
+    }
+
+    const upserted = Object.values(byLevel).reduce((sum, n) => sum + n, 0);
+    return res.json({ success: true, upserted, byLevel });
+  } catch (err: any) {
+    console.error("Ads sync-insights failed:", err);
+    return res.status(500).json({ success: false, error: err.message || "Falha ao sincronizar insights." });
+  }
+});
+
 // POST gera/retorna o token de webhook do operador (módulo de Anúncios). O token é gerado
 // uma única vez por operador e reutilizado depois — usado pela aba "Vendas"/"Pixels" para
 // montar a URL de webhook que o operador cola nos checkouts/trackers.
