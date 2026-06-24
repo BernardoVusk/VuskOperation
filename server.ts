@@ -3731,6 +3731,64 @@ app.post("/api/facebook/adset/:id/budget", async (req, res) => {
   }
 });
 
+// GET Facebook Ads (nível anúncio, dentro de um conjunto de anúncios). Rota nova — sem
+// twin no Netlify Functions (rotas novas vão só no Express).
+app.get("/api/facebook/ads", async (req, res) => {
+  const { accessToken, adsetId } = req.query;
+
+  if (!accessToken || !adsetId) {
+    return res.status(400).json({ success: false, error: "Access Token e ID do Conjunto de Anúncios são obrigatórios." });
+  }
+
+  try {
+    const fields = `id,name,status,creative{thumbnail_url,body,title},insights{spend,impressions,clicks,ctr,actions}`;
+    const url = `https://graph.facebook.com/v19.0/${adsetId}/ads?access_token=${accessToken}&fields=${encodeURIComponent(fields)}&limit=100`;
+
+    const response = await fetch(url);
+    const resJson: any = await response.json();
+
+    if (!response.ok || resJson.error) {
+      const errMsg = resJson.error?.message || "Erro desconhecido na API do Facebook";
+      return res.status(response.status || 400).json({ success: false, error: errMsg });
+    }
+
+    return res.json({ success: true, ads: resJson.data || [] });
+  } catch (err: any) {
+    console.error("Facebook Ads API failed:", err);
+    return res.status(500).json({ success: false, error: "Falha na comunicação com a API do Facebook: " + err.message });
+  }
+});
+
+// POST Atualiza o status (ACTIVE/PAUSED) de um anúncio do Facebook. Escrita real na conta
+// de anúncios do usuário — sem twin no Netlify Functions (rotas novas vão só no Express).
+app.post("/api/facebook/ad/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { accessToken, status } = req.body;
+
+  if (!accessToken || !status) {
+    return res.status(400).json({ success: false, error: "Access Token e status são obrigatórios." });
+  }
+  if (status !== "ACTIVE" && status !== "PAUSED") {
+    return res.status(400).json({ success: false, error: "Status inválido. Use ACTIVE ou PAUSED." });
+  }
+
+  try {
+    const url = `https://graph.facebook.com/v19.0/${id}?status=${status}&access_token=${accessToken}`;
+    const response = await fetch(url, { method: "POST" });
+    const resJson: any = await response.json();
+
+    if (!response.ok || resJson.error) {
+      const errMsg = resJson.error?.message || "Erro desconhecido na API do Facebook";
+      return res.status(response.status || 400).json({ success: false, error: errMsg });
+    }
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("Facebook Ad Status update failed:", err);
+    return res.status(500).json({ success: false, error: "Falha na comunicação com a API do Facebook: " + err.message });
+  }
+});
+
 // POST gera/retorna o token de webhook do operador (módulo de Anúncios). O token é gerado
 // uma única vez por operador e reutilizado depois — usado pela aba "Vendas"/"Pixels" para
 // montar a URL de webhook que o operador cola nos checkouts/trackers.

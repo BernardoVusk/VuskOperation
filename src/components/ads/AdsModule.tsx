@@ -17,6 +17,7 @@ import {
 import { AdsAccounts } from "./AdsAccounts";
 import { AdsCampaigns } from "./AdsCampaigns";
 import { AdsAdSets } from "./AdsAdSets";
+import { AdsAds } from "./AdsAds";
 
 type AdsSubTab =
   | "dashboard"
@@ -71,7 +72,7 @@ const SUB_TAB_GROUPS: AdsSubTabGroup[] = [
     tabs: [
       { id: "campanhas", label: "Campanhas", icon: Megaphone, render: () => <AdsCampaigns /> },
       { id: "conjuntos", label: "Conjuntos", icon: Layers, render: () => <AdsAdSets /> },
-      { id: "anuncios", label: "Anúncios", icon: Image, render: () => <Placeholder label="Anúncios" /> },
+      { id: "anuncios", label: "Anúncios", icon: Image, render: () => <AdsAds /> },
       { id: "pixels", label: "Pixels", icon: Target, render: () => <Placeholder label="Pixels" /> },
       { id: "contas", label: "Contas de Ads", icon: Wallet, render: () => <AdsAccounts /> },
       { id: "capi", label: "Meta CAPI", icon: Webhook, render: () => <Placeholder label="Meta CAPI" /> }
