@@ -4938,6 +4938,111 @@ app.post("/api/ads/capi/test", async (req, res) => {
   }
 });
 
+// GET dados agregados para a aba "Dashboard": série temporal diária (gasto x receita), totais
+// do período (receita, gasto, ROAS, AOV, lucro, nº de vendas) e receita por produto.
+//
+// Gasto: soma `ad_insights_daily.spend` apenas onde `level='account'` — as linhas de
+// campaign/adset/ad do mesmo dia representam o MESMO gasto visto em granularidades diferentes
+// (não são parcelas adicionais), então somar todos os níveis duplicaria o valor.
+// Receita: soma `sales.gross_amount` apenas onde `status='approved'` — vendas pendentes/
+// recusadas/reembolsadas não são receita real.
+// Faz uma query por tabela (não uma por dia) e agrega em memória por data, para não duplicar
+// a busca ao montar tanto a série temporal quanto os totais do período.
+app.get("/api/ads/dashboard", async (req, res) => {
+  const operator = req.query.operator as string;
+  const from = req.query.from as string | undefined;
+  const to = req.query.to as string | undefined;
+
+  if (!operator) {
+    return res.status(400).json({ success: false, error: "operator é obrigatório." });
+  }
+  if (!from || !to) {
+    return res.status(400).json({ success: false, error: "from e to são obrigatórios." });
+  }
+
+  if (!supabaseServer) {
+    return res.status(500).json({ success: false, error: "Supabase não está configurado no servidor." });
+  }
+
+  try {
+    const { data: insights, error: insightsErr } = await supabaseServer
+      .from("ad_insights_daily")
+      .select("date, spend")
+      .eq("operator", operator)
+      .eq("level", "account")
+      .gte("date", from)
+      .lte("date", to);
+    if (insightsErr) throw insightsErr;
+
+    const { data: sales, error: salesErr } = await supabaseServer
+      .from("sales")
+      .select("product_id, gross_amount, net_amount, occurred_at, products(name)")
+      .eq("operator", operator)
+      .eq("status", "approved")
+      .gte("occurred_at", `${from}T00:00:00.000Z`)
+      .lte("occurred_at", `${to}T23:59:59.999Z`);
+    if (salesErr) throw salesErr;
+
+    // Soma o gasto por data (string YYYY-MM-DD, mesmo formato da coluna `date`).
+    const spendByDate = new Map<string, number>();
+    for (const row of insights || []) {
+      spendByDate.set(row.date, (spendByDate.get(row.date) || 0) + (row.spend || 0));
+    }
+
+    // Soma a receita por data, extraindo a data (UTC) de `occurred_at` (timestamptz).
+    const revenueByDate = new Map<string, number>();
+    for (const sale of sales || []) {
+      const date = (sale.occurred_at as string).slice(0, 10);
+      revenueByDate.set(date, (revenueByDate.get(date) || 0) + (sale.gross_amount || 0));
+    }
+
+    // Monta a série com uma entrada por dia no intervalo [from, to], mesmo que sem dados —
+    // garante que o gráfico tenha um eixo X contínuo em vez de só os dias com atividade.
+    const series: Array<{ date: string; spend: number; revenue: number }> = [];
+    const cursor = new Date(`${from}T00:00:00.000Z`);
+    const end = new Date(`${to}T00:00:00.000Z`);
+    while (cursor <= end) {
+      const dateStr = cursor.toISOString().slice(0, 10);
+      series.push({
+        date: dateStr,
+        spend: spendByDate.get(dateStr) || 0,
+        revenue: revenueByDate.get(dateStr) || 0
+      });
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+
+    const totalSpend = series.reduce((sum, day) => sum + day.spend, 0);
+    const totalRevenue = series.reduce((sum, day) => sum + day.revenue, 0);
+    const salesCount = (sales || []).length;
+    const totalProfit = (sales || []).reduce((sum, sale: any) => sum + (sale.net_amount || 0), 0);
+
+    const totals = {
+      revenue: totalRevenue,
+      spend: totalSpend,
+      roas: totalSpend > 0 ? totalRevenue / totalSpend : null,
+      aov: salesCount > 0 ? totalRevenue / salesCount : null,
+      profit: totalProfit,
+      salesCount
+    };
+
+    // Receita por produto: agrupa pelo nome resolvido via join (vendas sem `product_id` ou
+    // cujo produto foi apagado caem em "Sem produto", para não perder o valor da venda).
+    const revenueByProduct = new Map<string, number>();
+    for (const sale of (sales || []) as any[]) {
+      const productName = sale.products?.name || "Sem produto";
+      revenueByProduct.set(productName, (revenueByProduct.get(productName) || 0) + (sale.gross_amount || 0));
+    }
+    const byProduct = Array.from(revenueByProduct.entries())
+      .map(([product, revenue]) => ({ product, revenue }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    return res.json({ success: true, series, totals, byProduct });
+  } catch (err: any) {
+    console.error("Ads dashboard failed:", err);
+    return res.status(500).json({ success: false, error: err.message || "Erro ao buscar dados do dashboard." });
+  }
+});
+
 // Garante JSON mesmo em erros de middleware (ex: payload acima do limite), evitando que o
 // client receba a página HTML padrão de erro do Express e quebre o JSON.parse da resposta.
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
